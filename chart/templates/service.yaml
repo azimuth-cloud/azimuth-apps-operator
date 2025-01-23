@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "azimuth-apps-operator.fullname" . }}
+  labels: {{ include "azimuth-apps-operator.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: metrics
+      protocol: TCP
+    - name: webhook
+      port: 443
+      targetPort: webhook
+      protocol: TCP
+  selector: {{ include "azimuth-apps-operator.selectorLabels" . | nindent 4 }}

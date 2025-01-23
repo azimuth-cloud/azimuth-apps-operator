@@ -1,0 +1,12 @@
+{{- if and .Values.metrics.enabled .Values.metrics.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "azimuth-apps-operator.fullname" . }}-dashboards
+  labels:
+    {{- include "azimuth-apps-operator.labels" . | nindent 4 }}
+    {{- toYaml .Values.metrics.dashboard.labels | nindent 4 }}
+data:
+  azimuth_apps_operator_dashboard.json: |
+    {{- .Files.Get "files/dashboard.json" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,23 @@
+{{- if and .Values.metrics.enabled .Values.metrics.prometheus.rules.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "azimuth-apps-operator.fullname" . }}
+  labels: {{ include "azimuth-apps-operator.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: azimuth-apps-operator.rules
+      rules:
+        - alert: AzimuthKubernetesAppNotDeployed
+          expr: >-
+            sum(azimuth_kube_app_phase{app_template=~".+",phase!="Deployed"}) by (app_namespace, app_name) > 0
+          for: 1h
+          annotations:
+            description: >-
+              Kubernetes app
+              {{ "{{" }} $labels.app_namespace {{ "}}" }}/{{ "{{" }} $labels.app_name {{ "}}" }}
+              has taken more than one hour to deploy.
+            summary: Kubernetes app has taken more than one hour to deploy.
+          labels:
+            severity: warning
+{{- end }}

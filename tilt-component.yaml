@@ -1,0 +1,6 @@
+chart: ./chart
+
+images:
+  azimuth-apps-operator:
+    context: .
+    chart_path: image
