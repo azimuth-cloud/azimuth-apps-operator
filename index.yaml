@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  azimuth-apps-operator:
+  - apiVersion: v2
+    appVersion: b0c0174
+    created: "2025-01-23T16:38:40.096981764Z"
+    description: Helm chart for deploying the Azimuth apps operator.
+    digest: 8d321819b2e02c98cc014df8857d8d2df78b0d2ade5fef536fc39ca6090f9124
+    name: azimuth-apps-operator
+    type: application
+    urls:
+    - azimuth-apps-operator-0.1.0-dev.0.main.1.tgz
+    version: 0.1.0-dev.0.main.1
+generated: "2025-01-23T16:38:40.096328751Z"
