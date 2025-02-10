@@ -14,3 +14,64 @@ rules:
       - get
       - watch
       - create
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    resourceNames:
+      - apptemplates.apps.azimuth-cloud.io
+      - apps.apps.azimuth-cloud.io
+    verbs:
+      - update
+      - patch
+  # Required for kopf to watch resources properly
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - list
+      - watch
+  # Required for kopf to produce events properly
+  - apiGroups:
+      - ""
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+  # We can manipulate our own objects
+  - apiGroups:
+      - apps.azimuth-cloud.io
+    resources:
+      - "*"
+    verbs:
+      - "*"
+  # We use secrets to store Helm values for Flux
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - "*"
+  # Required to manipulate Flux resources
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories
+      - helmcharts
+    verbs:
+      - "*"
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - "*"
+  # Required to manipulate identity platform resources
+  - apiGroups:
+      - identity.azimuth.stackhpc.com
+    resources:
+      - platforms
+    verbs:
+      - "*"
