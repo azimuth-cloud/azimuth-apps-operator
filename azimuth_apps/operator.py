@@ -1,8 +1,10 @@
 import asyncio
 import base64
 import contextlib
+import dataclasses
 import datetime as dt
 import functools
+import hashlib
 import json
 import logging
 import pathlib
@@ -256,6 +258,19 @@ async def reconcile_app_template(instance, **kwargs):
     await save_instance_status(instance)
 
 
+def compute_checksum(data):
+    """
+    Computes the checksum for the given data.
+    """
+    # We compute the checksum by dumping the data as JSON and hashing it
+    # When dumping, we sort the keys to try and ensure consistency
+    if isinstance(data, kube_custom_resource.schema.BaseModel):
+        data = data.model_dump_json(sort_keys = True)
+    elif not isinstance(data, str):
+        data = json.dumps(data, sort_keys = True)
+    return hashlib.sha256(data.encode()).hexdigest()
+
+
 @model_handler(api.App, kopf.on.create)
 @model_handler(api.App, kopf.on.update, field = "spec")
 @model_handler(api.App, kopf.on.resume)
@@ -278,10 +293,12 @@ async def reconcile_app(instance: api.App, **kwargs):
             raise
     else:
         template = api.AppTemplate.model_validate(template_data)
-    # Check that the specified version exists
-    if not any(v.name == instance.spec.template.version for v in template.status.versions):
-        raise kopf.TemporaryError("requested template version does not exist")
+
     # Template out and apply the Flux resources for the app
+    #
+    # NOTE(mkjpryor)
+    # The Flux resources are annotated with checksums of the template and app data
+    # This is to trigger reconciliation when referenced objects change but the spec does not
     for resource in [
         {
             "apiVersion": "source.toolkit.fluxcd.io/v1",
@@ -306,6 +323,12 @@ async def reconcile_app(instance: api.App, **kwargs):
                 "namespace": instance.metadata.namespace,
                 "labels": {
                     "apps.azimuth-cloud.io/app": instance.metadata.name,
+                },
+                "annotations": {
+                    # We want the chart to reconcile whenever the chart repo changes
+                    "reconcile.fluxcd.io/requestedAt": compute_checksum(
+                        template.spec.chart.repo
+                    ),
                 },
             },
             "spec": {
@@ -340,6 +363,19 @@ async def reconcile_app(instance: api.App, **kwargs):
                 "namespace": instance.metadata.namespace,
                 "labels": {
                     "apps.azimuth-cloud.io/app": instance.metadata.name,
+                },
+                "annotations": {
+                    # We want the Helm release to reconcile whenever the chart or values change
+                    "reconcile.fluxcd.io/requestedAt": compute_checksum(
+                        {
+                            "chart": {
+                                "repo": template.spec.chart.repo,
+                                "name": template.spec.chart.name,
+                                "version": instance.spec.template.version,
+                            },
+                            "values": instance.spec.values,
+                        }
+                    ),
                 },
             },
             "spec": {
@@ -399,6 +435,10 @@ async def delete_app(instance, **kwargs):
     """
     Handles the deletion of an app.
     """
+    # Put the app into the uninstalling phase if it isn't already
+    if instance.status.phase != api.AppPhase.UNINSTALLING:
+        instance.status.phase = api.AppPhase.UNINSTALLING
+        await save_instance_status(instance)
     # The Flux resources will be deleted by virtue of the owner references
     # The status will be updated by the timer tracking the Flux resources
     # We don't want our finalizer to be removed unless the Flux HelmRelease is gone
@@ -554,58 +594,128 @@ async def update_identity_platform(app: api.App):
     await ekclient.apply_object(platform, force = True)
 
 
-async def reconcile_app_status(app: api.App, release: t.Dict[str, t.Any]):
-    """
-    Reconcile the status of an app.
-    """
-    # NOTE(mkjpryor)
-    #
-    # Currently, the notes from the Helm release - which we use as the usage docs - are
-    # not exposed as part of the HelmRelease resource
-    #
-    # We also need to get the name and namespace of any Zenith reservations that were
-    # created as part of the release so that we can add them to our services
-    #
-    # This means that we need to load the Helm release from the target cluster
-    #
-    # Since we are already fetching the Helm release, we might as well get the status from
-    # it as well, for now, as it maps nicely onto our current phases rather than trying
-    # to derive it from the conditions of the HelmRelease object
-    #
-    # Flux may implement additional functionality in the future, e.g. custom health checks,
-    # that changes this situation
+@dataclasses.dataclass
+class Condition:
+    status: str
+    reason: t.Optional[str]
+    message: t.Optional[str]
 
+    def __str__(self):
+        return self.message or self.reason or ""
+
+
+def extract_condition(obj, type) -> Condition:
+    """
+    Extract the status and reason from the condition of the given type.
+    """
+    conditions = obj.get("status", {}).get("conditions", [])
+    try:
+        condition = next(c for c in conditions if c["type"] == type)
+    except StopIteration:
+        return Condition("Unknown", None, None)
+    else:
+        return Condition(
+            condition["status"],
+            condition.get("reason"),
+            condition.get("message")
+        )
+
+
+async def fetch_related_flux_object(app: api.App, kind: str):
+    """
+    Returns the related Flux object of the given kind for the app.
+    """
+    ekapi = ekclient.api(
+        "helm.toolkit.fluxcd.io/v2"
+        if kind == "HelmRelease"
+        else "source.toolkit.fluxcd.io/v1"
+    )
+    ekresource = await ekapi.resource(kind)
+    obj = await ekresource.first(
+        labels = {"apps.azimuth-cloud.io/app": app.metadata.name},
+        namespace = app.metadata.namespace
+    )
+    if obj:
+        return obj
+    else:
+        raise kopf.TemporaryError(f"{kind} does not exist for app")
+
+
+def reconcile_app_phase(
+    repository: t.Dict[str, t.Any],
+    chart: t.Dict[str, t.Any],
+    release: t.Dict[str, t.Any]
+):
+    """
+    Reconcile the phase of an app. Returns a tuple of (phase, failure message).
+    """
+    repository_ready = extract_condition(repository, "Ready")
+    repository_stalled = extract_condition(repository, "Stalled")
+    chart_ready = extract_condition(chart, "Ready")
+    chart_stalled = extract_condition(chart, "Stalled")
+    ready = extract_condition(release, "Ready")
+    released = extract_condition(release, "Released")
+    reconciling = extract_condition(release, "Reconciling")
+
+    # For the repository and chart, we only transition into the failed phase if they are stalled
+    # This means that Flux has identified that they cannot proceed without changes to the spec
+    # Anything else is considered preparing
+    if repository_ready.status != "True":
+        if repository_stalled.status == "True":
+            return api.AppPhase.FAILED, str(repository_stalled)
+        else:
+            return api.AppPhase.PREPARING, None
+    if chart_ready.status != "True":
+        if chart_stalled.status == "True":
+            return api.AppPhase.FAILED, str(chart_stalled)
+        else:
+            return api.AppPhase.PREPARING, None
+
+    # If we get to here, the repository and chart are ready
+    if ready.status == "True":
+        return api.AppPhase.DEPLOYED, None
+    elif reconciling.status == "True":
+        # Whether reconciling resolves to installing or upgrading depends on whether there has
+        # been a successful release previously
+        if released.status == "True":
+            return api.AppPhase.UPGRADING, None
+        else:
+            return api.AppPhase.INSTALLING, None
+    elif ready.status == "False":
+        # If the ready status is actually False rather than Unknown, mark the app as failed
+        return api.AppPhase.FAILED, str(ready)
+    else:
+        return api.AppPhase.PENDING, None
+
+
+async def reconcile_app_status(
+    app: api.App,
+    repository: t.Dict[str, t.Any],
+    chart: t.Dict[str, t.Any],
+    release: t.Dict[str, t.Any]
+):
+    """
+    Reconcile the status of an app and a Flux object.
+    """
     # If the app is deleting, we don't do anything
     if app.metadata.deletion_timestamp:
         return
 
-    async with clients_for_app(app) as (ekclient_target, helm_client_target):
-        # Get the current revision of the Helm release managed by the Flux HelmRelease
-        revision = await get_helm_revision(helm_client_target, release)
-        # Derive the status from the revision
-        app.status.usage = revision.notes
-        app.status.failure_message = None
-        if revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED:
-            app.status.phase = api.AppPhase.DEPLOYED
-        elif revision.status == pyhelm3.ReleaseRevisionStatus.FAILED:
-            app.status.phase = api.AppPhase.FAILED
-            app.status.failure_message = revision.description
-        elif revision.status == pyhelm3.ReleaseRevisionStatus.PENDING_ROLLBACK:
-            app.status.phase = api.AppPhase.PREPARING
-        elif revision.status == pyhelm3.ReleaseRevisionStatus.PENDING_INSTALL:
-            app.status.phase = api.AppPhase.INSTALLING
-        elif revision.status == pyhelm3.ReleaseRevisionStatus.PENDING_UPGRADE:
-            app.status.phase = api.AppPhase.UPGRADING
-        elif revision.status in {
-            pyhelm3.ReleaseRevisionStatus.UNINSTALLING,
-            pyhelm3.ReleaseRevisionStatus.UNINSTALLED
-        }:
-            app.status.phase = api.AppPhase.UNINSTALLING
-        else:
-            # superseded or unknown
-            app.status.phase = api.AppPhase.UNKNOWN
-        # Update the Zenith services from the Helm revision
-        app.status.services = await get_zenith_services(ekclient_target, revision)
+    # Derive the phase of the app from the Flux objects
+    app.status.phase, app.status.failure_message = reconcile_app_phase(
+        repository,
+        chart,
+        release
+    )
+
+    # Get the notes and Zenith services directly from the Helm release, as the notes and
+    # manifest are not exposed as part of the Flux HelmRelease object
+    try:
+        async with clients_for_app(app) as (ekclient_target, helm_client_target):
+            revision = await get_helm_revision(helm_client_target, release)
+            app.status.usage = revision.notes
+            app.status.services = await get_zenith_services(ekclient_target, revision)
+    finally:
         # Save the changes to the status
         await save_instance_status(app)
     # Make sure the identity platform that produces credentials for Zenith is up-to-date
@@ -621,33 +731,74 @@ async def reconcile_app_status_timer(instance: api.App, **kwargs):
     """
     Reconcile the app status.
     """
-    # Get the HelmRelease associated with the app
-    releases = await ekclient.api("helm.toolkit.fluxcd.io/v2").resource("helmreleases")
-    release = await releases.first(
-        labels = {"apps.azimuth-cloud.io/app": instance.metadata.name},
-        namespace = instance.metadata.namespace
-    )
-    # If there is no release yet, we have nothing to do
-    # If there is a release, reconcile the app status with it
-    if release:
-        await reconcile_app_status(instance, release)
+    repository = await fetch_related_flux_object(instance, "HelmRepository")
+    chart = await fetch_related_flux_object(instance, "HelmChart")
+    release = await fetch_related_flux_object(instance, "HelmRelease")
+    await reconcile_app_status(instance, repository, chart, release)
+
+
+async def find_app(obj):
+    """
+    Returns the app associated with a Flux object.
+    """
+    apps = await ekresource_for_model(api.App)
+    try:
+        app_data = await apps.fetch(
+            obj["metadata"]["labels"]["apps.azimuth-cloud.io/app"],
+            namespace = obj["metadata"]["namespace"]
+        )
+    except easykube.ApiError as exc:
+        if exc.status_code == 404:
+            return None
+        else:
+            raise
+    else:
+        return api.App.model_validate(app_data)
+
+
+@kopf.on.event(
+    "helmrepositories.helm.toolkit.fluxcd.io",
+    labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
+)
+async def handle_helmrepository_event(body, **kwargs):
+    """
+    Handles changes to Flux HelmRepository objects associated with apps.
+    """
+    app = await find_app(body)
+    if app:
+        repository = body
+        chart = await fetch_related_flux_object(app, "HelmChart")
+        release = await fetch_related_flux_object(app, "HelmRelease")
+        await reconcile_app_status(app, repository, chart, release)
+
+
+@kopf.on.event(
+    "helmcharts.helm.toolkit.fluxcd.io",
+    labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
+)
+async def handle_helmchart_event(body, **kwargs):
+    """
+    Handles changes to Flux HelmChart objects associated with apps.
+    """
+    app = await find_app(body)
+    if app:
+        repository = await fetch_related_flux_object(app, "HelmRepository")
+        chart = body
+        release = await fetch_related_flux_object(app, "HelmRelease")
+        await reconcile_app_status(app, repository, chart, release)
 
 
 @kopf.on.event(
     "helmreleases.helm.toolkit.fluxcd.io",
     labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
 )
-async def handle_helmrelease_event(body, namespace, labels, **kwargs):
+async def handle_helmrelease_event(body, **kwargs):
     """
     Handles changes to Flux HelmRelease objects associated with apps.
     """
-    # Get the app associated with the HelmRelease
-    apps = await ekresource_for_model(api.App)
-    try:
-        app_data = await apps.fetch(labels["apps.azimuth-cloud.io/app"], namespace = namespace)
-    except easykube.ApiError as exc:
-        if exc.status_code != 404:
-            raise
-    else:
-        app = api.App.model_validate(app_data)
-        await reconcile_app_status(app, body)
+    app = await find_app(body)
+    if app:
+        repository = await fetch_related_flux_object(app, "HelmRepository")
+        chart = await fetch_related_flux_object(app, "HelmChart")
+        release = body
+        await reconcile_app_status(app, repository, chart, release)
