@@ -757,7 +757,7 @@ async def find_app(obj):
 
 
 @kopf.on.event(
-    "helmrepositories.helm.toolkit.fluxcd.io",
+    "helmrepositories.source.toolkit.fluxcd.io",
     labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
 )
 async def handle_helmrepository_event(body, **kwargs):
@@ -773,7 +773,7 @@ async def handle_helmrepository_event(body, **kwargs):
 
 
 @kopf.on.event(
-    "helmcharts.helm.toolkit.fluxcd.io",
+    "helmcharts.source.toolkit.fluxcd.io",
     labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
 )
 async def handle_helmchart_event(body, **kwargs):

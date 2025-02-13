@@ -7,7 +7,7 @@ from easysemver import SEMVER_VERSION_REGEX
 from kube_custom_resource import CustomResource, schema
 
 
-class AppTemplateVersion(schema.BaseModel):
+class AppTemplateVersionRef(schema.BaseModel):
     """
     The spec for the app template and version to use.
     """
@@ -39,7 +39,7 @@ class AppSpec(schema.BaseModel):
     """
     The spec for an Azimuth Kubernetes app.
     """
-    template: AppTemplateVersion = Field(
+    template: AppTemplateVersionRef = Field(
         ...,
         description = "The template and version to use for the app."
     )
