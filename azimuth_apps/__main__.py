@@ -2,7 +2,7 @@ import asyncio
 
 import kopf
 
-# from . import metrics
+from . import metrics
 
 
 async def main():
@@ -17,7 +17,7 @@ async def main():
         clusterwide = True,
         liveness_endpoint = "http://0.0.0.0:8000/healthz"
     )
-    # tasks.append(asyncio.create_task(metrics.metrics_server()))
+    tasks.append(asyncio.create_task(metrics.metrics_server()))
     await kopf.run_tasks(tasks)
 
 

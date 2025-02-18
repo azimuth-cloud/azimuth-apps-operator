@@ -24,8 +24,8 @@
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 39,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "collapsed": false,
@@ -77,6 +77,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -84,9 +85,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -95,7 +98,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(topk(1, azimuth_kube_app_info{app_template=~\".+\"}) by (app_namespace, app_name))",
+          "expr": "sum(topk(1, azimuth_apps_app_info) by (app_namespace, app_name))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -117,11 +120,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
             "gradientMode": "none",
@@ -130,6 +135,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -298,10 +304,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -309,7 +317,7 @@
             "uid": "$datasource"
           },
           "editorMode": "code",
-          "expr": "sum(topk(1, azimuth_kube_app_phase{app_template=~\".+\",phase=~\".+\"}) by (app_namespace, app_name)) by (phase)",
+          "expr": "sum(topk(1, azimuth_apps_app_phase{phase=~\".+\"}) by (app_namespace, app_name)) by (phase)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -329,11 +337,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
             "gradientMode": "none",
@@ -342,6 +352,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -387,10 +398,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -398,7 +411,7 @@
             "uid": "$datasource"
           },
           "editorMode": "code",
-          "expr": "sum(topk(1, azimuth_kube_app_info{app_template=~\".+\"}) by(app_namespace, app_name)) by(app_namespace)",
+          "expr": "sum(topk(1, azimuth_apps_app_info) by(app_namespace, app_name)) by(app_namespace)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -448,6 +461,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -455,9 +469,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -466,7 +482,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(topk(1, azimuth_kube_app_phase{app_template=~\".+\",phase=\"Deployed\"}) by(app_namespace, app_name))",
+          "expr": "sum(topk(1, azimuth_apps_app_phase{phase=\"Deployed\"}) by(app_namespace, app_name))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -516,6 +532,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -523,9 +540,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -534,7 +553,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(topk(1, azimuth_kube_app_phase{app_template=~\".+\",phase=~\"Failed|Unknown\"}) by (app_namespace, app_name))",
+          "expr": "sum(topk(1, azimuth_apps_app_phase{phase=~\"Failed|Unknown\"}) by (app_namespace, app_name))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -594,6 +613,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -601,9 +621,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -612,7 +634,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(topk(1, azimuth_kube_apptemplate_info) by(template_name))",
+          "expr": "sum(topk(1, azimuth_apps_template_info) by(template_name))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -633,11 +655,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
             "gradientMode": "none",
@@ -646,6 +670,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -692,10 +717,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -703,7 +730,7 @@
             "uid": "$datasource"
           },
           "editorMode": "code",
-          "expr": "sum(topk(1, azimuth_kube_app_info{app_template=~\".+\"}) by (app_namespace, app_name)) by (app_template)",
+          "expr": "sum(topk(1, azimuth_apps_app_info) by (app_namespace, app_name)) by (template_name)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -724,11 +751,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
             "gradientMode": "none",
@@ -737,6 +766,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -782,10 +812,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -793,7 +825,7 @@
             "uid": "$datasource"
           },
           "editorMode": "code",
-          "expr": "sum(topk(1, azimuth_kube_app_info{app_template=~\".+\"} unless (azimuth_kube_app_info{app_template=~\".+\"} * on(instance, app_template, chart_version) group_left() label_replace(label_replace(azimuth_kube_apptemplate_latest_version, \"chart_version\", \"$1\", \"version\", \"(.+)\"), \"app_template\", \"$1\", \"template_name\", \"(.+)\"))) by(app_namespace, app_name)) by(app_template)",
+          "expr": "sum(topk(1, azimuth_apps_app_info unless (azimuth_apps_app_info * on(instance, template_name, template_version) group_left() label_replace(azimuth_apps_template_latest_version, \"template_version\", \"$1\", \"version\", \"(.+)\")))) by(template_name)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -843,6 +875,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -850,9 +883,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -861,7 +896,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum((topk(1, azimuth_kube_apptemplate_last_sync) by(template_name) + 86400) < bool time())",
+          "expr": "sum((topk(1, azimuth_apps_template_last_sync) by(template_name) + 86400) < bool time())",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -912,6 +947,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -919,9 +955,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -930,7 +968,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(topk(1, azimuth_kube_app_info{app_template=~\".+\"} unless (azimuth_kube_app_info{app_template=~\".+\"} * on(instance, app_template, chart_version) group_left() label_replace(label_replace(azimuth_kube_apptemplate_latest_version, \"chart_version\", \"$1\", \"version\", \"(.+)\"), \"app_template\", \"$1\", \"template_name\", \"(.+)\"))) by(app_namespace, app_name))",
+          "expr": "sum(topk(1, azimuth_apps_app_info unless (azimuth_apps_app_info * on(instance, template_name, template_version) group_left() label_replace(azimuth_apps_template_latest_version, \"template_version\", \"$1\", \"version\", \"(.+)\"))) by(app_namespace, app_name))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -965,7 +1003,9 @@
           },
           "custom": {
             "align": "auto",
-            "displayMode": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
             "filterable": true,
             "inspect": false
           },
@@ -1003,7 +1043,9 @@
       },
       "id": 31,
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
           "enablePagination": true,
           "fields": "",
           "reducer": [
@@ -1014,7 +1056,7 @@
         "frameIndex": 2,
         "showHeader": true
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -1023,7 +1065,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(1, azimuth_kube_apptemplate_info * on(instance, template_name) group_left(latest_version) label_replace(azimuth_kube_apptemplate_latest_version, \"latest_version\", \"$1\", \"version\", \"(.+)\") * on(instance, template_name) group_left() azimuth_kube_apptemplate_last_sync * 1000) by(template_name)",
+          "expr": "topk(1, azimuth_apps_template_info * on(instance, template_name) group_left(latest_version) label_replace(azimuth_apps_template_latest_version, \"latest_version\", \"$1\", \"version\", \"(.+)\") * on(instance, template_name) group_left() azimuth_apps_template_last_sync * 1000) by(template_name)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1038,7 +1080,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(topk(1, azimuth_kube_apptemplate_version) by(template_name, version)) by(template_name)",
+          "expr": "count(topk(1, azimuth_apps_template_version) by(template_name, version)) by(template_name)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1053,7 +1095,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(topk(1, label_replace(azimuth_kube_app_info{app_template=~\".+\"}, \"template_name\", \"$1\", \"app_template\", \"(.+)\")) by(app_namespace, app_name)) by(template_name)",
+          "expr": "count(topk(1, azimuth_apps_app_info) by(app_namespace, app_name)) by(template_name)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1154,7 +1196,10 @@
           },
           "custom": {
             "align": "auto",
-            "displayMode": "color-background-solid",
+            "cellOptions": {
+              "mode": "basic",
+              "type": "color-background"
+            },
             "filterable": true,
             "inspect": false
           },
@@ -1266,7 +1311,9 @@
       },
       "id": 25,
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
           "enablePagination": true,
           "fields": "",
           "reducer": [
@@ -1277,7 +1324,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "11.5.1",
       "targets": [
         {
           "datasource": {
@@ -1286,7 +1333,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "label_join(topk(1, (azimuth_kube_app_info{app_template=~\".+\"} * on(instance, app_namespace, app_name) group_left(phase) azimuth_kube_app_phase * on(instance, app_template, chart_version) group_left() label_replace(label_replace(azimuth_kube_apptemplate_latest_version, \"chart_version\", \"$1\", \"version\", \"(.+)\"), \"app_template\", \"$1\", \"template_name\", \"(.+)\")) or (((azimuth_kube_app_info{app_template=~\".+\"} * on(instance, app_namespace, app_name) group_left(phase) azimuth_kube_app_phase) - 1) unless (azimuth_kube_app_info{app_template=~\".+\"} * on(instance, app_template, chart_version) group_left() label_replace(label_replace(azimuth_kube_apptemplate_latest_version, \"chart_version\", \"$1\", \"version\", \"(.+)\"), \"app_template\", \"$1\", \"template_name\", \"(.+)\")))) by (app_namespace, app_name), \"app\", \"/\", \"app_namespace\", \"app_name\")",
+          "expr": "label_join(topk(1, (azimuth_apps_app_info * on(instance, app_namespace, app_name) group_left(phase) azimuth_apps_app_phase * on(instance, template_name, template_version) group_left() label_replace(azimuth_apps_template_latest_version, \"template_version\", \"$1\", \"version\", \"(.+)\")) or (((azimuth_apps_app_info * on(instance, app_namespace, app_name) group_left(phase) azimuth_apps_app_phase) - 1) unless (azimuth_apps_app_info * on(instance, template_name, template_version) group_left() label_replace(azimuth_apps_template_latest_version, \"template_version\", \"$1\", \"version\", \"(.+)\")))) by (app_namespace, app_name), \"app\", \"/\", \"app_namespace\", \"app_name\")",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1323,30 +1370,24 @@
               "target_cluster": true,
               "target_namespace": true
             },
+            "includeByName": {},
             "indexByName": {
-              "Time": 5,
+              "Time": 6,
               "Value": 3,
               "app": 0,
-              "app_name": 7,
-              "app_namespace": 6,
-              "app_template": 1,
-              "chart_name": 8,
-              "chart_repo": 9,
-              "chart_version": 2,
-              "container": 10,
-              "customresource_group": 11,
-              "customresource_kind": 12,
-              "customresource_version": 13,
-              "endpoint": 14,
-              "instance": 15,
-              "job": 16,
-              "namespace": 17,
-              "phase": 4,
-              "pod": 18,
-              "release_name": 19,
-              "service": 20,
-              "target_cluster": 21,
-              "target_namespace": 22
+              "app_name": 8,
+              "app_namespace": 7,
+              "container": 9,
+              "endpoint": 10,
+              "instance": 11,
+              "job": 12,
+              "kubeconfig_secret_name": 4,
+              "namespace": 13,
+              "phase": 5,
+              "pod": 14,
+              "service": 15,
+              "template_name": 1,
+              "template_version": 2
             },
             "renameByName": {
               "Value": "Up-to-date?",
@@ -1356,7 +1397,10 @@
               "app_template": "Template",
               "chart_version": "Version",
               "customresource_kind": "",
-              "phase": "Phase"
+              "kubeconfig_secret_name": "Kubeconfig Secret",
+              "phase": "Phase",
+              "template_name": "Template",
+              "template_version": "Version"
             }
           }
         }
@@ -1364,29 +1408,24 @@
       "type": "table"
     }
   ],
+  "preload": false,
   "refresh": "30s",
-  "schemaVersion": 37,
-  "style": "dark",
+  "schemaVersion": 40,
   "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "Prometheus",
-          "value": "Prometheus"
+          "value": "prometheus"
         },
-        "hide": 0,
         "includeAll": false,
         "label": "Data Source",
-        "multi": false,
         "name": "datasource",
         "options": [],
         "query": "prometheus",
-        "queryValue": "",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       }
     ]
@@ -1397,8 +1436,8 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "Azimuth / Kubernetes apps",
-  "uid": "0NuiYNUVk",
-  "version": 14,
+  "title": "Azimuth / Apps",
+  "uid": "cedg0th70atj4a",
+  "version": 1,
   "weekStart": ""
 }

@@ -10,7 +10,7 @@ spec:
       rules:
         - alert: AzimuthKubernetesAppNotDeployed
           expr: >-
-            sum(azimuth_kube_app_phase{app_template=~".+",phase!="Deployed"}) by (app_namespace, app_name) > 0
+            sum(azimuth_apps_app_phase{phase!="Deployed"}) by (app_namespace, app_name) > 0
           for: 1h
           annotations:
             description: >-
