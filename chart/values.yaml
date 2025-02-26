@@ -1,6 +1,10 @@
 # Configuration for the operator
 # For all available options, see azimuth_apps/config.py
-config: {}
+config:
+  zenithOperator:
+    chartRepo: https://azimuth-cloud.github.io/zenith
+    chartName: zenith-operator
+    chartVersion: 0.14.0
 
 # A bundle of trusted CAs to use instead of the defaults
 trustBundle:

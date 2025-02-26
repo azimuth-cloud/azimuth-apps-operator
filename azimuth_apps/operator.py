@@ -8,6 +8,7 @@ import hashlib
 import json
 import logging
 import pathlib
+import random
 import sys
 import tempfile
 import typing as t
@@ -100,16 +101,6 @@ async def on_cleanup(**kwargs):
     """
     LOGGER.info("Closing Kubernetes and Keycloak clients")
     await ekclient.aclose()
-
-
-def format_instance(instance):
-    """
-    Formats an instance for logging.
-    """
-    if instance.metadata.name == instance.metadata.namespace:
-        return instance.metadata.name
-    else:
-        return f"{instance.metadata.namespace}/{instance.metadata.name}"
 
 
 async def ekresource_for_model(model, subresource = None):
@@ -264,11 +255,234 @@ def compute_checksum(data):
     """
     # We compute the checksum by dumping the data as JSON and hashing it
     # When dumping, we sort the keys to try and ensure consistency
-    if isinstance(data, kube_custom_resource.schema.BaseModel):
-        data = data.model_dump_json(sort_keys = True)
-    elif not isinstance(data, str):
+    if not isinstance(data, str):
         data = json.dumps(data, sort_keys = True)
     return hashlib.sha256(data.encode()).hexdigest()
+
+
+def generate_flux_resources(
+    owner: t.Dict[str, t.Any],
+    name: str,
+    namespace: str,
+    labels: t.Dict[str, str],
+    repo: str,
+    chart: str,
+    version: str,
+    values: t.Dict[str, str],
+    release_name: t.Optional[str] = None,
+    target_namespace: t.Optional[str] = None,
+    kubeconfig_secret_name: t.Optional[str] = None,
+    kubeconfig_secret_key: t.Optional[str] = None
+):
+    return [
+        {
+            "apiVersion": "source.toolkit.fluxcd.io/v1",
+            "kind": "HelmRepository",
+            "metadata": {
+                "name": name,
+                "namespace": namespace,
+                "labels": labels,
+                "ownerReferences": [
+                    {
+                        "apiVersion": owner["apiVersion"],
+                        "kind": owner["kind"],
+                        "name": owner["metadata"]["name"],
+                        "uid": owner["metadata"]["uid"],
+                        "controller": True,
+                        "blockOwnerDeletion": True,
+                    },
+                ],
+            },
+            "spec": {
+                "url": repo,
+                "interval": "1h",
+            },
+        },
+        {
+            "apiVersion": "source.toolkit.fluxcd.io/v1",
+            "kind": "HelmChart",
+            "metadata": {
+                "name": name,
+                "namespace": namespace,
+                "labels": labels,
+                "annotations": {
+                    # We want the chart to reconcile whenever the chart repo changes
+                    "reconcile.fluxcd.io/requestedAt": compute_checksum(repo),
+                },
+                "ownerReferences": [
+                    {
+                        "apiVersion": owner["apiVersion"],
+                        "kind": owner["kind"],
+                        "name": owner["metadata"]["name"],
+                        "uid": owner["metadata"]["uid"],
+                        "controller": True,
+                        "blockOwnerDeletion": True,
+                    },
+                ],
+            },
+            "spec": {
+                "chart": chart,
+                "version": version,
+                "sourceRef": {
+                    "kind": "HelmRepository",
+                    "name": name,
+                },
+                "interval": "1h",
+            },
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {
+                "name": f"{name}-config",
+                "namespace": namespace,
+                "labels": labels,
+                "ownerReferences": [
+                    {
+                        "apiVersion": owner["apiVersion"],
+                        "kind": owner["kind"],
+                        "name": owner["metadata"]["name"],
+                        "uid": owner["metadata"]["uid"],
+                        "controller": True,
+                        "blockOwnerDeletion": True,
+                    },
+                ],
+            },
+            "stringData": {
+                "values.yaml": yaml.safe_dump(values),
+            },
+        },
+        {
+            "apiVersion": "helm.toolkit.fluxcd.io/v2",
+            "kind": "HelmRelease",
+            "metadata": {
+                "name": name,
+                "namespace": namespace,
+                "labels": labels,
+                "annotations": {
+                    # We want the Helm release to reconcile whenever the chart or values change
+                    "reconcile.fluxcd.io/requestedAt": compute_checksum(
+                        {
+                            "chart": {
+                                "repo": repo,
+                                "name": chart,
+                                "version": version,
+                            },
+                            "values": values,
+                        }
+                    ),
+                },
+                "ownerReferences": [
+                    {
+                        "apiVersion": owner["apiVersion"],
+                        "kind": owner["kind"],
+                        "name": owner["metadata"]["name"],
+                        "uid": owner["metadata"]["uid"],
+                        "controller": True,
+                        "blockOwnerDeletion": True,
+                    },
+                ],
+            },
+            "spec": {
+                "chartRef": {
+                    "kind": "HelmChart",
+                    "name": name,
+                },
+                "releaseName": release_name or name,
+                "targetNamespace": target_namespace or namespace,
+                "storageNamespace": target_namespace or namespace,
+                "valuesFrom": [
+                    {
+                        "kind": "Secret",
+                        "name": f"{name}-config",
+                        "valuesKey": "values.yaml",
+                    },
+                ],
+                # For maximum compatibility, don't use a persistent client
+                # https://fluxcd.io/flux/components/helm/helmreleases/#persistent-client
+                "persistentClient": False,
+                "install": {
+                    "crds": "CreateReplace",
+                    "createNamespace": True,
+                    "remediation": {
+                        "retries": -1,
+                    },
+                },
+                "upgrade": {
+                    "crds": "CreateReplace",
+                    "remediation": {
+                        "retries": -1,
+                    },
+                },
+                "interval": "5m",
+                "timeout": "5m",
+                # If a kubeconfig secret is specified, configure it
+                **(
+                    {
+                        "kubeConfig": {
+                            "secretRef": {
+                                "name": kubeconfig_secret_name,
+                                "key": kubeconfig_secret_key,
+                            },
+                        },
+                    }
+                    if kubeconfig_secret_name
+                    else {}
+                ),
+            },
+        },
+    ]
+
+
+@kopf.on.event(
+    "v1",
+    "secrets",
+    labels = { settings.zenith_operator.kubeconfig_secret_label: kopf.PRESENT }
+)
+async def handle_secret_event(logger, name, namespace, body, **kwargs):
+    """
+    Handles events on kubeconfig secrets by ensuring that Flux resources exist
+    to provision a Zenith operator watching the cluster.
+    """
+    # If the secret is deleting, we do nothing as the Flux resources will be deleted by
+    # garbage collection
+    if body["metadata"].get("deletionTimestamp"):
+        return
+    # We retry the event, with an exponential backoff, until it succeeds
+    attempt = 0
+    while True:
+        try:
+            # Template out and apply the Flux resources for the Zenith operator instance
+            for resource in generate_flux_resources(
+                body,
+                f"{name}-zenith-operator",
+                namespace,
+                {"app.kubernetes.io/managed-by": "azimuth-apps-operator"},
+                settings.zenith_operator.chart_repo,
+                settings.zenith_operator.chart_name,
+                settings.zenith_operator.chart_version,
+                {
+                    **settings.zenith_operator.default_values,
+                    # Use the secret that the event is for as the target
+                    "kubeconfigSecret": {
+                        "name": name,
+                        # Just use the first key in the secret
+                        # We expect a single key
+                        "key": next(iter(body["data"].keys())),
+                    },
+                }
+            ):
+                await ekclient.apply_object(resource, force = True)
+        except Exception as exc:
+            # Log the exception
+            logger.exception(exc)
+        else:
+            return
+        # Calculate the clamped backoff, including some jitter
+        delay = min(2**attempt, 120) + random.uniform(0, 1)
+        logger.info("Waiting %.3fs before retrying", delay)
+        await asyncio.sleep(delay)
+        attempt = attempt + 1
 
 
 @model_handler(api.App, kopf.on.create)
@@ -295,138 +509,23 @@ async def reconcile_app(instance: api.App, **kwargs):
         template = api.AppTemplate.model_validate(template_data)
 
     # Template out and apply the Flux resources for the app
-    #
-    # NOTE(mkjpryor)
-    # The Flux resources are annotated with checksums of the template and app data
-    # This is to trigger reconciliation when referenced objects change but the spec does not
-    for resource in [
+    for resource in generate_flux_resources(
+        instance.model_dump(by_alias = True),
+        f"azapp-{instance.metadata.name}",
+        instance.metadata.namespace,
         {
-            "apiVersion": "source.toolkit.fluxcd.io/v1",
-            "kind": "HelmRepository",
-            "metadata": {
-                "name": instance.metadata.name,
-                "namespace": instance.metadata.namespace,
-                "labels": {
-                    "apps.azimuth-cloud.io/app": instance.metadata.name,
-                },
-            },
-            "spec": {
-                "url": template.spec.chart.repo,
-                "interval": "1h",
-            },
+            "app.kubernetes.io/managed-by": "azimuth-apps-operator",
+            "apps.azimuth-cloud.io/app": instance.metadata.name,
         },
-        {
-            "apiVersion": "source.toolkit.fluxcd.io/v1",
-            "kind": "HelmChart",
-            "metadata": {
-                "name": instance.metadata.name,
-                "namespace": instance.metadata.namespace,
-                "labels": {
-                    "apps.azimuth-cloud.io/app": instance.metadata.name,
-                },
-                "annotations": {
-                    # We want the chart to reconcile whenever the chart repo changes
-                    "reconcile.fluxcd.io/requestedAt": compute_checksum(
-                        template.spec.chart.repo
-                    ),
-                },
-            },
-            "spec": {
-                "chart": template.spec.chart.name,
-                "version": instance.spec.template.version,
-                "sourceRef": {
-                    "kind": "HelmRepository",
-                    "name": instance.metadata.name,
-                },
-                "interval": "1h",
-            },
-        },
-        {
-            "apiVersion": "v1",
-            "kind": "Secret",
-            "metadata": {
-                "name": f"{instance.metadata.name}-config",
-                "namespace": instance.metadata.namespace,
-                "labels": {
-                    "apps.azimuth-cloud.io/app": instance.metadata.name,
-                },
-            },
-            "stringData": {
-                "values.yaml": yaml.safe_dump(instance.spec.values),
-            },
-        },
-        {
-            "apiVersion": "helm.toolkit.fluxcd.io/v2",
-            "kind": "HelmRelease",
-            "metadata": {
-                "name": instance.metadata.name,
-                "namespace": instance.metadata.namespace,
-                "labels": {
-                    "apps.azimuth-cloud.io/app": instance.metadata.name,
-                },
-                "annotations": {
-                    # We want the Helm release to reconcile whenever the chart or values change
-                    "reconcile.fluxcd.io/requestedAt": compute_checksum(
-                        {
-                            "chart": {
-                                "repo": template.spec.chart.repo,
-                                "name": template.spec.chart.name,
-                                "version": instance.spec.template.version,
-                            },
-                            "values": instance.spec.values,
-                        }
-                    ),
-                },
-            },
-            "spec": {
-                "chartRef": {
-                    "kind": "HelmChart",
-                    "name": instance.metadata.name,
-                },
-                # Use the specified kubeconfig
-                "kubeConfig": {
-                    "secretRef": {
-                        "name": instance.spec.kubeconfig_secret.name,
-                        "key": instance.spec.kubeconfig_secret.key,
-                    },
-                },
-                # Each app has a named namespace
-                "targetNamespace": instance.metadata.name,
-                # Store Helm release information in the same namespace
-                "storageNamespace": instance.metadata.name,
-                # The release is named after the app
-                "releaseName": instance.metadata.name,
-                # Values come from the secret that we wrote
-                "valuesFrom": [
-                    {
-                        "kind": "Secret",
-                        "name": f"{instance.metadata.name}-config",
-                        "valuesKey": "values.yaml",
-                    },
-                ],
-                # For maximum compatibility, don't use a persistent client
-                # https://fluxcd.io/flux/components/helm/helmreleases/#persistent-client
-                "persistentClient": False,
-                "install": {
-                    "crds": "CreateReplace",
-                    "createNamespace": True,
-                    "remediation": {
-                        "retries": -1,
-                    },
-                },
-                "upgrade": {
-                    "crds": "CreateReplace",
-                    "remediation": {
-                        "retries": -1,
-                    },
-                },
-                "interval": "5m",
-                "timeout": "5m",
-            },
-        },
-    ]:
-        # Make sure the Flux resources are owned by the app resource
-        kopf.adopt(resource, instance.model_dump(by_alias = True))
+        template.spec.chart.repo,
+        template.spec.chart.name,
+        instance.spec.template.version,
+        instance.spec.values,
+        instance.metadata.name,
+        instance.metadata.name,
+        instance.spec.kubeconfig_secret.name,
+        instance.spec.kubeconfig_secret.key
+    ):
         await ekclient.apply_object(resource, force = True)
 
 
@@ -572,26 +671,37 @@ async def update_identity_platform(app: api.App):
     Makes sure that the identity platform for the app matches the current state of the
     Zenith services for the app.
     """
-    platform = {
-        "apiVersion": "identity.azimuth.stackhpc.com/v1alpha1",
-        "kind": "Platform",
-        "metadata": {
-            "name": f"kubeapp-{app.metadata.name}",
-            "namespace": app.metadata.namespace,
-        },
-        "spec": {
-            "realmName": app.spec.zenith_identity_realm_name,
-            "zenithServices": {
-                name: {
-                    "subdomain": service.subdomain,
-                    "fqdn": service.fqdn,
-                }
-                for name, service in app.status.services.items()
+    await ekclient.apply_object(
+        {
+            "apiVersion": "identity.azimuth.stackhpc.com/v1alpha1",
+            "kind": "Platform",
+            "metadata": {
+                "name": f"azapp-{app.metadata.name}",
+                "namespace": app.metadata.namespace,
+                "ownerReferences": [
+                    {
+                        "apiVersion": app.api_version,
+                        "kind": app.kind,
+                        "name": app.metadata.name,
+                        "uid": app.metadata.uid,
+                        "controller": True,
+                        "blockOwnerDeletion": True,
+                    },
+                ],
+            },
+            "spec": {
+                "realmName": app.spec.zenith_identity_realm_name,
+                "zenithServices": {
+                    name: {
+                        "subdomain": service.subdomain,
+                        "fqdn": service.fqdn,
+                    }
+                    for name, service in app.status.services.items()
+                },
             },
         },
-    }
-    kopf.adopt(platform, app.model_dump(by_alias = True))
-    await ekclient.apply_object(platform, force = True)
+        force = True
+    )
 
 
 @dataclasses.dataclass
@@ -723,7 +833,8 @@ async def reconcile_app_status(
 
 
 @model_handler(
-    api.App, kopf.on.timer,
+    api.App,
+    kopf.on.timer,
     interval = settings.timer_interval,
     idle = settings.timer_interval
 )

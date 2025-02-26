@@ -24,6 +24,23 @@ class HelmClientConfiguration(Section):
     unpack_directory: t.Optional[str] = None
 
 
+class ZenithOperatorConfiguration(Section):
+    """
+    Configuration for the Zenith operator instances.
+    """
+    #: The label to use to find kubeconfig secrets to watch
+    kubeconfig_secret_label: constr(min_length = 1) = "apps.azimuth-cloud.io/default-kubeconfig"
+    #: The repository for the Zenith operator chart
+    chart_repo: constr(min_length = 1)
+    #: The name of the Zenith operator chart
+    chart_name: constr(min_length = 1)
+    #: The version of the Zenith operator to use
+    chart_version: constr(min_length = 1)
+    #: The default values to use for Zenith operator instances
+    #: In particular, this should include the Zenith registrar and SSHD connection details
+    default_values: t.Dict[str, t.Any] = Field(default_factory = dict)
+
+
 class Configuration(
     BaseConfiguration,
     default_path = "/etc/azimuth/apps-operator.yaml",
@@ -54,6 +71,11 @@ class Configuration(
 
     #: The Helm client configuration
     helm_client: HelmClientConfiguration = Field(default_factory = HelmClientConfiguration)
+
+    #: The Zenith operator configuration
+    zenith_operator: ZenithOperatorConfiguration = Field(
+        default_factory = ZenithOperatorConfiguration
+    )
 
 
 settings = Configuration()

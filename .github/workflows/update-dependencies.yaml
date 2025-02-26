@@ -19,6 +19,11 @@ jobs:
             repository: helm/helm
             version_jsonpath: HELM_VERSION
 
+          - key: zenith-operator
+            path: ./chart/values.yaml
+            repository: azimuth-cloud/zenith
+            version_jsonpath: config.zenithOperator.chartVersion
+
     name: ${{ matrix.key }}
     steps:
       - name: Checkout
