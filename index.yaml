@@ -3,7 +3,7 @@ entries:
   azimuth-apps-operator:
   - apiVersion: v2
     appVersion: f1a674f
-    created: "2025-05-12T01:33:56.857067971Z"
+    created: "2025-05-13T01:41:53.577698866Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 19c6c1d683fbaf159aa836c1565e4797697f9175bc323a98d5d7cfd9ad010fea
     name: azimuth-apps-operator
@@ -12,8 +12,18 @@ entries:
     - azimuth-apps-operator-0.1.2-dev.0.dependabot-pip-pip-updates-d11625ff70.1.tgz
     version: 0.1.2-dev.0.dependabot-pip-pip-updates-d11625ff70.1
   - apiVersion: v2
+    appVersion: 5de21ec
+    created: "2025-05-13T01:41:53.577189375Z"
+    description: Helm chart for deploying the Azimuth apps operator.
+    digest: b0c0664699614cf836391c0e696558fb87e18c0c235514b3625f34e20804a4a0
+    name: azimuth-apps-operator
+    type: application
+    urls:
+    - azimuth-apps-operator-0.1.2-dev.0.dependabot-pip-pip-updates-0b2539513e.1.tgz
+    version: 0.1.2-dev.0.dependabot-pip-pip-updates-0b2539513e.1
+  - apiVersion: v2
     appVersion: 2bb410a
-    created: "2025-05-12T01:33:56.856666955Z"
+    created: "2025-05-13T01:41:53.576272343Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 104af33d2bcb99050e18b1f6878e1494dc892a2ed3d08566b341c819413ec946
     name: azimuth-apps-operator
@@ -23,7 +33,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: f49be80
-    created: "2025-05-12T01:33:56.856257094Z"
+    created: "2025-05-13T01:41:53.575443305Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 9f44f73f1e19f1436545ac394036b4f58ddb630b5648f7edbdca62a0b2399330
     name: azimuth-apps-operator
@@ -33,7 +43,7 @@ entries:
     version: 0.1.1-dev.0.update-dependency-helm.3
   - apiVersion: v2
     appVersion: 2870a69
-    created: "2025-05-12T01:33:56.85584081Z"
+    created: "2025-05-13T01:41:53.575024002Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: b84917e059a177a4297b4ca6b5cce60d21ad3bc5b442909ba10c503a7d3a065e
     name: azimuth-apps-operator
@@ -43,7 +53,7 @@ entries:
     version: 0.1.1-dev.0.update-dependency-helm.1
   - apiVersion: v2
     appVersion: 32a43b1
-    created: "2025-05-12T01:33:56.855446077Z"
+    created: "2025-05-13T01:41:53.574613315Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 847dfbb7f687097e246b0247e60bd84003bf88f8089cf292fa41c946107d4d50
     name: azimuth-apps-operator
@@ -53,7 +63,7 @@ entries:
     version: 0.1.1-dev.0.main.5
   - apiVersion: v2
     appVersion: be0fd73
-    created: "2025-05-12T01:33:56.855040644Z"
+    created: "2025-05-13T01:41:53.574223287Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 18d12fb98a7335ab7fea992c9ce29215c5ba24bd4b600fe069c466ae0226d39a
     name: azimuth-apps-operator
@@ -63,7 +73,7 @@ entries:
     version: 0.1.1-dev.0.main.4
   - apiVersion: v2
     appVersion: f21e4ba
-    created: "2025-05-12T01:33:56.854650018Z"
+    created: "2025-05-13T01:41:53.573812289Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: fff21487d92bb077239767e3021557570d07375d4ce0667a2fc23f2d69d2f1ad
     name: azimuth-apps-operator
@@ -73,7 +83,7 @@ entries:
     version: 0.1.1-dev.0.main.3
   - apiVersion: v2
     appVersion: 63fdf67
-    created: "2025-05-12T01:33:56.854238142Z"
+    created: "2025-05-13T01:41:53.573401011Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: ca8caaeec45e966738e1975776a2e79ec402856680baf0d46df44885ad82ebc9
     name: azimuth-apps-operator
@@ -83,7 +93,7 @@ entries:
     version: 0.1.1-dev.0.main.2
   - apiVersion: v2
     appVersion: 3b21208
-    created: "2025-05-12T01:33:56.853842738Z"
+    created: "2025-05-13T01:41:53.572997908Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 0739a5b4fec6a7be61d37ebc45920e3023491d5bb0753f8b66c5136d4c62617b
     name: azimuth-apps-operator
@@ -93,7 +103,7 @@ entries:
     version: 0.1.1-dev.0.main.1
   - apiVersion: v2
     appVersion: 1e6dc63
-    created: "2025-05-12T01:33:56.853442944Z"
+    created: "2025-05-13T01:41:53.5725814Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: e4949d636b00717117c5fbd912f23ebab82fdbaca8d4aeb65d1008a2d469f88b
     name: azimuth-apps-operator
@@ -103,7 +113,7 @@ entries:
     version: 0.1.1-dev.0.fix-match-docker-tox.3
   - apiVersion: v2
     appVersion: 2bc0124
-    created: "2025-05-12T01:33:56.853023275Z"
+    created: "2025-05-13T01:41:53.572176724Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 0f58baa18760bfb7f23d61f9f753539279e5a3efe0254b8d04045545173635eb
     name: azimuth-apps-operator
@@ -113,7 +123,7 @@ entries:
     version: 0.1.1-dev.0.feature-group-dependabot-pip.5
   - apiVersion: v2
     appVersion: 3844a88
-    created: "2025-05-12T01:33:56.852619965Z"
+    created: "2025-05-13T01:41:53.571753173Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 421b1af4850a55acb88caa38e425d50643d13874d008f8ebf28235b8ecd9189d
     name: azimuth-apps-operator
@@ -123,7 +133,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-python-json-logger-3-3-0.1
   - apiVersion: v2
     appVersion: 8851a9c
-    created: "2025-05-12T01:33:56.852175199Z"
+    created: "2025-05-13T01:41:53.571288495Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 14377a3bb2e292bb67c627e1ca852bb8d9bfa77e38ff34a33e4e662310a43dce
     name: azimuth-apps-operator
@@ -133,7 +143,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-34-1.3
   - apiVersion: v2
     appVersion: 5b67c95
-    created: "2025-05-12T01:33:56.851408043Z"
+    created: "2025-05-13T01:41:53.570473864Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 376e9e60471a944c6dd9596cd82d2a6be56a51c770dc9f2cf699eb956290a11a
     name: azimuth-apps-operator
@@ -143,7 +153,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-33-1.3
   - apiVersion: v2
     appVersion: c329940
-    created: "2025-05-12T01:33:56.8505671Z"
+    created: "2025-05-13T01:41:53.569639966Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 7c7da9e2eec810a872eea4a155cd89b3b083fae2f614348f92054fd894bbb2a5
     name: azimuth-apps-operator
@@ -153,7 +163,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-33-0.3
   - apiVersion: v2
     appVersion: "592e004"
-    created: "2025-05-12T01:33:56.850150396Z"
+    created: "2025-05-13T01:41:53.569249166Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 6e4950867c7383c04f179e678b87f6c931d0ac1eb9f87e40cbc169597ab587a7
     name: azimuth-apps-operator
@@ -163,7 +173,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-32-0.1
   - apiVersion: v2
     appVersion: bb26574
-    created: "2025-05-12T01:33:56.849754781Z"
+    created: "2025-05-13T01:41:53.568855541Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 97f3eaba60f8662e960cf2fcf79265bb669217e93d2441653ce684ac54d81f6e
     name: azimuth-apps-operator
@@ -173,7 +183,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-31-1.1
   - apiVersion: v2
     appVersion: 1f0dbde
-    created: "2025-05-12T01:33:56.84933446Z"
+    created: "2025-05-13T01:41:53.568440927Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: a2cab46c378277203ac969a43341338a51cf73c8dd3f956b4428641874642b51
     name: azimuth-apps-operator
@@ -183,7 +193,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pydantic-core-2-31-0.1
   - apiVersion: v2
     appVersion: "8257437"
-    created: "2025-05-12T01:33:56.84893612Z"
+    created: "2025-05-13T01:41:53.568034728Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 49ae40574067bc782cfdc897c9d43cd705c8edf2c94c331589a8dd115e29ec71
     name: azimuth-apps-operator
@@ -193,7 +203,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-propcache-0-3-0.4
   - apiVersion: v2
     appVersion: c085306
-    created: "2025-05-12T01:33:56.848533862Z"
+    created: "2025-05-13T01:41:53.567601168Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: c8571282dd4ee33ad9f2e18b143d83f6f73e126ebadbf23fbf940e6da76f5987
     name: azimuth-apps-operator
@@ -203,7 +213,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-pip-updates-2b90e7ef07.7
   - apiVersion: v2
     appVersion: 44d116a
-    created: "2025-05-12T01:33:56.848106979Z"
+    created: "2025-05-13T01:41:53.567206221Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: dd6fb3784a2a262e39549d44b4642ce662b8b3e84ce42e0ed8769a125bd5d61b
     name: azimuth-apps-operator
@@ -213,7 +223,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-jinja2-3-1-6.1
   - apiVersion: v2
     appVersion: cd4d6b6
-    created: "2025-05-12T01:33:56.847555114Z"
+    created: "2025-05-13T01:41:53.566812125Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: ec9c284e0dce54321ec7f6cf6a0dbc4058f34b1e4fa8e1400844c0e6091e1c73
     name: azimuth-apps-operator
@@ -223,7 +233,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-attrs-25-3-0.1
   - apiVersion: v2
     appVersion: 844e635
-    created: "2025-05-12T01:33:56.846881351Z"
+    created: "2025-05-13T01:41:53.566396498Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: c43513175a5e1b42241ff09033cf38b1f4c89bf3d90cc269fef05192cf70f9f7
     name: azimuth-apps-operator
@@ -233,7 +243,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-attrs-25-2-0.1
   - apiVersion: v2
     appVersion: d9cb3f9
-    created: "2025-05-12T01:33:56.84619164Z"
+    created: "2025-05-13T01:41:53.565993125Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 8af2d56be56cfbff4b1a013d9d633689ba1d8c14b603e64327db3c377e879bc3
     name: azimuth-apps-operator
@@ -243,7 +253,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-aiohappyeyeballs-2-6-1.1
   - apiVersion: v2
     appVersion: d68c417
-    created: "2025-05-12T01:33:56.845597125Z"
+    created: "2025-05-13T01:41:53.565546431Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: c709eb5c8e80f877adfc6adabec1c39c5f9ae921c4435196612ef7c9a1b471dd
     name: azimuth-apps-operator
@@ -253,7 +263,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-aiohappyeyeballs-2-5-0.1
   - apiVersion: v2
     appVersion: fbcc56f
-    created: "2025-05-12T01:33:56.844678125Z"
+    created: "2025-05-13T01:41:53.56513378Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: e98f656b3aa2d6d9834e08fb16b2e254613c59a6784f2c127416af2ceb6009af
     name: azimuth-apps-operator
@@ -263,7 +273,7 @@ entries:
     version: 0.1.1-dev.0.dependabot-pip-aiohappyeyeballs-2-4-8.1
   - apiVersion: v2
     appVersion: ba4ded9
-    created: "2025-05-12T01:33:56.843800404Z"
+    created: "2025-05-13T01:41:53.564504348Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 19a977beb1327c4beb6a74c9976aabb4fc395aa9a578efc771c67cae20efc91d
     name: azimuth-apps-operator
@@ -273,7 +283,7 @@ entries:
     version: 0.1.0
   - apiVersion: v2
     appVersion: a5beadc
-    created: "2025-05-12T01:33:56.843090625Z"
+    created: "2025-05-13T01:41:53.563478372Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 3f5645824f42f9c626f5b408a0c417eeb63cece6f1fe302c5b1a72c6dae8355a
     name: azimuth-apps-operator
@@ -283,7 +293,7 @@ entries:
     version: 0.1.0-dev.0.update-dependency-zenith-operator.16
   - apiVersion: v2
     appVersion: 58235c7
-    created: "2025-05-12T01:33:56.842648082Z"
+    created: "2025-05-13T01:41:53.563071772Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 3151c3f6f49e03e95f8c6666e68ba83703a72032b177d79e6cf36e5937a32b0b
     name: azimuth-apps-operator
@@ -293,7 +303,7 @@ entries:
     version: 0.1.0-dev.0.update-dependency-helm.12
   - apiVersion: v2
     appVersion: 7fe0082
-    created: "2025-05-12T01:33:56.841051165Z"
+    created: "2025-05-13T01:41:53.561479769Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 2d5548fd48fa1e098588201f0ea43dfc99118b5a1147c33fa26c8810f70a7b4a
     name: azimuth-apps-operator
@@ -303,7 +313,7 @@ entries:
     version: 0.1.0-dev.0.main.15
   - apiVersion: v2
     appVersion: 793e7e8
-    created: "2025-05-12T01:33:56.840637126Z"
+    created: "2025-05-13T01:41:53.561088057Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 26efabbcd9228f67356fb885955f897c59458ad6b26a40a347b8007ff4795f3f
     name: azimuth-apps-operator
@@ -313,7 +323,7 @@ entries:
     version: 0.1.0-dev.0.main.14
   - apiVersion: v2
     appVersion: 4190db5
-    created: "2025-05-12T01:33:56.84021425Z"
+    created: "2025-05-13T01:41:53.560703158Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 3bf80e5e8b24ec91cf212d1d0a07121c9ce51fcefa079c63190739a3291a3a9c
     name: azimuth-apps-operator
@@ -323,7 +333,7 @@ entries:
     version: 0.1.0-dev.0.main.13
   - apiVersion: v2
     appVersion: 1404c88
-    created: "2025-05-12T01:33:56.83982141Z"
+    created: "2025-05-13T01:41:53.560272253Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 75656db930c75b82faae2c50a9a4972e9dbec507d302c563e6ba13f94426c774
     name: azimuth-apps-operator
@@ -333,7 +343,7 @@ entries:
     version: 0.1.0-dev.0.main.11
   - apiVersion: v2
     appVersion: afab4e8
-    created: "2025-05-12T01:33:56.839409074Z"
+    created: "2025-05-13T01:41:53.559860304Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: a2f000d10b89cb2dc8563a9faf5d96a14f2dc2b26c73e035817134b79e543ca2
     name: azimuth-apps-operator
@@ -343,7 +353,7 @@ entries:
     version: 0.1.0-dev.0.main.10
   - apiVersion: v2
     appVersion: 2184d9c
-    created: "2025-05-12T01:33:56.842218735Z"
+    created: "2025-05-13T01:41:53.562674931Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 16878bcb1767f44f79c984b373d8eca49bfb1d2368c7277a6cda4c62d049efb5
     name: azimuth-apps-operator
@@ -353,7 +363,7 @@ entries:
     version: 0.1.0-dev.0.main.4
   - apiVersion: v2
     appVersion: 5419f4b
-    created: "2025-05-12T01:33:56.841838368Z"
+    created: "2025-05-13T01:41:53.562262541Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: bad4ff000dd8153882b86c19ddc1de9c9d41cc2c93232a599a8c7b0a88ff2a20
     name: azimuth-apps-operator
@@ -363,7 +373,7 @@ entries:
     version: 0.1.0-dev.0.main.3
   - apiVersion: v2
     appVersion: "1559549"
-    created: "2025-05-12T01:33:56.841456759Z"
+    created: "2025-05-13T01:41:53.561883192Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 61881f72f1bc56153ccd5913a74023d2371ab790c299b325d56b0aa9eeb564e0
     name: azimuth-apps-operator
@@ -373,7 +383,7 @@ entries:
     version: 0.1.0-dev.0.main.2
   - apiVersion: v2
     appVersion: b0c0174
-    created: "2025-05-12T01:33:56.83897135Z"
+    created: "2025-05-13T01:41:53.559399373Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 8d321819b2e02c98cc014df8857d8d2df78b0d2ade5fef536fc39ca6090f9124
     name: azimuth-apps-operator
@@ -383,7 +393,7 @@ entries:
     version: 0.1.0-dev.0.main.1
   - apiVersion: v2
     appVersion: "901e073"
-    created: "2025-05-12T01:33:56.838559114Z"
+    created: "2025-05-13T01:41:53.558993365Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: fb297a947fd51fa96d6a762b76cb7fe4ea7b9f9fa4adaedcc5ab58d0cfccd732
     name: azimuth-apps-operator
@@ -393,7 +403,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-core-2-30-0.15
   - apiVersion: v2
     appVersion: 37edd34
-    created: "2025-05-12T01:33:56.838084783Z"
+    created: "2025-05-13T01:41:53.55794876Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: ab8d66cc4a15bf657e444ae07f9c1ae30086356f4ada94388430208473320c41
     name: azimuth-apps-operator
@@ -403,7 +413,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-core-2-29-0.4
   - apiVersion: v2
     appVersion: aba750e
-    created: "2025-05-12T01:33:56.837029304Z"
+    created: "2025-05-13T01:41:53.557065541Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 0bd25fbc49341538bfbffca37a36c499517886e2e899f3865f38658489816ea4
     name: azimuth-apps-operator
@@ -413,7 +423,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-core-2-29-0.3
   - apiVersion: v2
     appVersion: 687e6e4
-    created: "2025-05-12T01:33:56.8362199Z"
+    created: "2025-05-13T01:41:53.556643382Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: e6b46a5bdd7fe5ee5f20a90b6f958997e84db06ac3e06df0cfabe658c050643c
     name: azimuth-apps-operator
@@ -423,7 +433,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-core-2-28-0.3
   - apiVersion: v2
     appVersion: f064d25
-    created: "2025-05-12T01:33:56.835544985Z"
+    created: "2025-05-13T01:41:53.556239959Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 7890d61ec23af14f9654188ed6c49045c2e4c3a86ea59546657faf2d2087694a
     name: azimuth-apps-operator
@@ -433,7 +443,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-2-10-6.3
   - apiVersion: v2
     appVersion: 06d600c
-    created: "2025-05-12T01:33:56.835129614Z"
+    created: "2025-05-13T01:41:53.555833389Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 54f4b853c95afb163f30cf1f17246f67558aafe56918903eaf7af4858ea2dd33
     name: azimuth-apps-operator
@@ -443,7 +453,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-pydantic-2-10-6.2
   - apiVersion: v2
     appVersion: 6e5321a
-    created: "2025-05-12T01:33:56.834697361Z"
+    created: "2025-05-13T01:41:53.555392516Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 46652abc827ea12cb4df766a5e209f8c660e714ecdd831d1e53c93c21453f67f
     name: azimuth-apps-operator
@@ -453,7 +463,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-propcache-0-3-0.15
   - apiVersion: v2
     appVersion: 53b487c
-    created: "2025-05-12T01:33:56.833957856Z"
+    created: "2025-05-13T01:41:53.554994503Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: e3f923f9d0191958e65a710f42bbb4e48d9603574fd8132b27b4efb705f3ecd5
     name: azimuth-apps-operator
@@ -463,7 +473,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-certifi-2025-1-31.4
   - apiVersion: v2
     appVersion: bd7b87b
-    created: "2025-05-12T01:33:56.83355642Z"
+    created: "2025-05-13T01:41:53.55454862Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: f99cbb5371b19cd47e1079f896bafab0554738b4fc7a31175113d3b6a2503d38
     name: azimuth-apps-operator
@@ -473,7 +483,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-aiohttp-3-11-13.15
   - apiVersion: v2
     appVersion: 10b2b96
-    created: "2025-05-12T01:33:56.832522769Z"
+    created: "2025-05-13T01:41:53.553715684Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 7fb9c75afd436d4d2bd73d1b71e0d483be42c1920ff6102274446fffb7c8d121
     name: azimuth-apps-operator
@@ -483,7 +493,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-aiohttp-3-11-12.11
   - apiVersion: v2
     appVersion: 05c9141
-    created: "2025-05-12T01:33:56.832947719Z"
+    created: "2025-05-13T01:41:53.554140919Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: b5bed3f68ee36bbde3b0161274418e5ba2c590f811e0fc408739ca653aeefe6f
     name: azimuth-apps-operator
@@ -493,7 +503,7 @@ entries:
     version: 0.1.0-dev.0.dependabot-pip-aiohttp-3-11-12.4
   - apiVersion: v2
     appVersion: 33fb17a
-    created: "2025-05-12T01:33:56.832046685Z"
+    created: "2025-05-13T01:41:53.553266936Z"
     description: Helm chart for deploying the Azimuth apps operator.
     digest: 78969eb837214b1876b99b1a46d2c6a7b6110ad54514d0faf6747659e4bef4fa
     name: azimuth-apps-operator
@@ -501,4 +511,4 @@ entries:
     urls:
     - azimuth-apps-operator-0.1.0-dev.0.dependabot-pip-aiohappyeyeballs-2-4-6.4.tgz
     version: 0.1.0-dev.0.dependabot-pip-aiohappyeyeballs-2-4-6.4
-generated: "2025-05-12T01:33:56.831455075Z"
+generated: "2025-05-13T01:41:53.55268512Z"
