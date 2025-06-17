@@ -2,9 +2,8 @@ import asyncio
 import datetime
 import functools
 
-from aiohttp import web
-
 import easykube
+from aiohttp import web
 
 from .config import settings
 
@@ -14,7 +13,7 @@ class Metric:
     prefix = None
     # The suffix for the metric
     suffix = None
-    # The type of the metric - info or guage
+    # The type of the metric - info or gauge
     type = "info"
     # The description of the metric
     description = None
@@ -31,15 +30,15 @@ class Metric:
 
     def labels(self, obj):
         """The labels for the given object."""
-        return { **self.common_labels(obj), **self.extra_labels(obj) }
+        return {**self.common_labels(obj), **self.extra_labels(obj)}
 
     def common_labels(self, obj):
         """Common labels for the object."""
         return {}
 
     def extra_labels(self, obj):
-       """Extra labels for the object."""
-       return {}
+        """Extra labels for the object."""
+        return {}
 
     def value(self, obj):
         """The value for the given object."""
@@ -55,7 +54,7 @@ class AppTemplateMetric(Metric):
     prefix = "azimuth_apps_template"
 
     def common_labels(self, obj):
-        return { "template_name": obj.metadata.name }
+        return {"template_name": obj.metadata.name}
 
 
 class AppTemplateInfo(AppTemplateMetric):
@@ -63,7 +62,7 @@ class AppTemplateInfo(AppTemplateMetric):
     description = "Basic info for the app template"
 
     def extra_labels(self, obj):
-        return { "chart_repo": obj.spec.chart.repo, "chart_name": obj.spec.chart.name }
+        return {"chart_repo": obj.spec.chart.repo, "chart_name": obj.spec.chart.name}
 
 
 class AppTemplateLastSync(AppTemplateMetric):
@@ -86,7 +85,7 @@ class AppTemplateLatestVersion(AppTemplateMetric):
             version = versions[0]["name"]
         else:
             version = "0.0.0"
-        return { "version": version }
+        return {"version": version}
 
 
 class AppTemplateVersion(AppTemplateMetric):
@@ -97,7 +96,7 @@ class AppTemplateVersion(AppTemplateMetric):
         for obj in self._objs:
             labels = super().labels(obj)
             for version in obj.get("status", {}).get("versions", []):
-                yield { **labels, "version": version["name"] }, 1
+                yield {**labels, "version": version["name"]}, 1
 
 
 class AppMetric(Metric):
@@ -127,7 +126,7 @@ class AppPhase(AppMetric):
     description = "App phase"
 
     def extra_labels(self, obj):
-        return { "phase": obj.get("status", {}).get("phase", "Unknown") }
+        return {"phase": obj.get("status", {}).get("phase", "Unknown")}
 
 
 class AppService(AppMetric):
@@ -137,7 +136,8 @@ class AppService(AppMetric):
     def records(self):
         for obj in self._objs:
             labels = super().labels(obj)
-            for service_name, service in obj.get("status", {}).get("services", {}).items():
+            services = obj.get("status", {}).get("services", {})
+            for service_name, service in services.items():
                 yield (
                     {
                         **labels,
@@ -145,7 +145,7 @@ class AppService(AppMetric):
                         "service_subdomain": service["subdomain"],
                         "service_fqdn": service["fqdn"],
                     },
-                    1
+                    1,
                 )
 
 
@@ -163,9 +163,11 @@ def as_timestamp(datetime_str):
 def format_value(value):
     """Formats a value for output, e.g. using Go formatting."""
     formatted = repr(value)
-    dot = formatted.find('.')
+    dot = formatted.find(".")
     if value > 0 and dot > 6:
-        mantissa = f"{formatted[0]}.{formatted[1:dot]}{formatted[dot + 1:]}".rstrip("0.")
+        mantissa = f"{formatted[0]}.{formatted[1:dot]}{formatted[dot + 1 :]}".rstrip(
+            "0."
+        )
         return f"{mantissa}e+0{dot - 1}"
     else:
         return formatted
@@ -181,7 +183,7 @@ def render_openmetrics(*metrics):
 
         for labels, value in metric.records():
             if labels:
-                labelstr = "{{{0}}}".format(
+                labelstr = "{{{}}}".format(
                     ",".join([f'{k}="{escape(v)}"' for k, v in sorted(labels.items())])
                 )
             else:
@@ -220,7 +222,7 @@ async def metrics_handler(ekclient, request):
         for resource, metric_classes in resources.items():
             ekresource = await ekapi.resource(resource)
             resource_metrics = [klass() for klass in metric_classes]
-            async for obj in ekresource.list(all_namespaces = True):
+            async for obj in ekresource.list(all_namespaces=True):
                 for metric in resource_metrics:
                     metric.add_obj(obj)
             metrics.extend(resource_metrics)
@@ -236,10 +238,10 @@ async def metrics_server():
     app = web.Application()
     app.add_routes([web.get("/metrics", functools.partial(metrics_handler, ekclient))])
 
-    runner = web.AppRunner(app, handle_signals = False)
+    runner = web.AppRunner(app, handle_signals=False)
     await runner.setup()
 
-    site = web.TCPSite(runner, "0.0.0.0", "8080", shutdown_timeout = 1.0)
+    site = web.TCPSite(runner, "0.0.0.0", "8080", shutdown_timeout=1.0)
     await site.start()
 
     # Sleep until we need to clean up
