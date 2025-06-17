@@ -13,42 +13,40 @@ import sys
 import tempfile
 import typing as t
 
-import httpx
-import kopf
-import yaml
-
 import easykube
 import easysemver
+import httpx
+import kopf
 import kube_custom_resource
 import pyhelm3
+import yaml
+
+# Create an easykube client from the environment
+from pydantic.json import pydantic_encoder
 
 from . import models
 from .config import settings
 from .models import v1alpha1 as api
 
-
 LOGGER = logging.getLogger(__name__)
 
 
-# Create an easykube client from the environment
-from pydantic.json import pydantic_encoder
-ekconfig = easykube.Configuration.from_environment(json_encoder = pydantic_encoder)
-ekclient = ekconfig.async_client(default_field_manager = settings.easykube_field_manager)
+ekconfig = easykube.Configuration.from_environment(json_encoder=pydantic_encoder)
+ekclient = ekconfig.async_client(default_field_manager=settings.easykube_field_manager)
 
 
 helm_client = pyhelm3.Client(
-    default_timeout = settings.helm_client.default_timeout,
-    executable = settings.helm_client.executable,
-    history_max_revisions = settings.helm_client.history_max_revisions,
-    insecure_skip_tls_verify = settings.helm_client.insecure_skip_tls_verify,
-    unpack_directory = settings.helm_client.unpack_directory
+    default_timeout=settings.helm_client.default_timeout,
+    executable=settings.helm_client.executable,
+    history_max_revisions=settings.helm_client.history_max_revisions,
+    insecure_skip_tls_verify=settings.helm_client.insecure_skip_tls_verify,
+    unpack_directory=settings.helm_client.unpack_directory,
 )
 
 
 # Create a registry of custom resources and populate it from the models module
 registry = kube_custom_resource.CustomResourceRegistry(
-    settings.api_group,
-    settings.crd_categories
+    settings.api_group, settings.crd_categories
 )
 registry.discover_models(models)
 
@@ -61,24 +59,26 @@ async def apply_settings(**kwargs):
     kopf_settings = kwargs["settings"]
     kopf_settings.persistence.finalizer = f"{settings.api_group}/finalizer"
     kopf_settings.persistence.progress_storage = kopf.AnnotationsProgressStorage(
-        prefix = settings.api_group
+        prefix=settings.api_group
     )
     kopf_settings.persistence.diffbase_storage = kopf.AnnotationsDiffBaseStorage(
-        prefix = settings.api_group,
-        key = "last-handled-configuration",
+        prefix=settings.api_group,
+        key="last-handled-configuration",
     )
     kopf_settings.watching.client_timeout = settings.watch_timeout
     # Apply the CRDs
     for crd in registry:
         try:
-            await ekclient.apply_object(crd.kubernetes_resource(), force = True)
+            await ekclient.apply_object(crd.kubernetes_resource(), force=True)
         except Exception:
-            LOGGER.exception("error applying CRD %s.%s - exiting", crd.plural_name, crd.api_group)
+            LOGGER.exception(
+                "error applying CRD %s.%s - exiting", crd.plural_name, crd.api_group
+            )
             sys.exit(1)
     # Give Kubernetes a chance to create the APIs for the CRDs
     await asyncio.sleep(0.5)
-    # Check to see if the APIs for the CRDs are up
-    # If they are not, the kopf watches will not start properly so we exit and get restarted
+    # Check to see if the APIs for the CRDs are up. If they are not,
+    # the kopf watches will not start properly so we exit and get restarted
     LOGGER.info("Waiting for CRDs to become available")
     for crd in registry:
         preferred_version = next(k for k, v in crd.versions.items() if v.storage)
@@ -87,9 +87,7 @@ async def apply_settings(**kwargs):
             _ = await ekclient.get(f"/apis/{api_version}/{crd.plural_name}")
         except Exception:
             LOGGER.exception(
-                "api for %s.%s not available - exiting",
-                crd.plural_name,
-                crd.api_group
+                "api for %s.%s not available - exiting", crd.plural_name, crd.api_group
             )
             sys.exit(1)
 
@@ -103,7 +101,7 @@ async def on_cleanup(**kwargs):
     await ekclient.aclose()
 
 
-async def ekresource_for_model(model, subresource = None):
+async def ekresource_for_model(model, subresource=None):
     """
     Returns an easykube resource for the given model.
     """
@@ -123,10 +121,10 @@ async def save_instance_status(instance):
         instance.metadata.name,
         {
             # Include the resource version for optimistic concurrency
-            "metadata": { "resourceVersion": instance.metadata.resource_version },
-            "status": instance.status.model_dump(exclude_defaults = True),
+            "metadata": {"resourceVersion": instance.metadata.resource_version},
+            "status": instance.status.model_dump(exclude_defaults=True),
         },
-        namespace = instance.metadata.namespace
+        namespace=instance.metadata.namespace,
     )
     # Store the new resource version
     instance.metadata.resource_version = data["metadata"]["resourceVersion"]
@@ -137,37 +135,43 @@ def model_handler(model, register_fn, **kwargs):
     Decorator that registers a handler with kopf for the specified model.
     """
     api_version = f"{settings.api_group}/{model._meta.version}"
+
     def decorator(func):
         @functools.wraps(func)
         async def handler(**handler_kwargs):
             if "instance" not in handler_kwargs:
-                handler_kwargs["instance"] = model.model_validate(handler_kwargs["body"])
+                handler_kwargs["instance"] = model.model_validate(
+                    handler_kwargs["body"]
+                )
             try:
                 return await func(**handler_kwargs)
             except easykube.ApiError as exc:
                 if exc.status_code == 409:
                     # When a handler fails with a 409, we want to retry quickly
-                    raise kopf.TemporaryError(str(exc), delay = 5)
+                    raise kopf.TemporaryError(str(exc), delay=5)
                 else:
                     raise
+
         return register_fn(api_version, model._meta.plural_name, **kwargs)(handler)
+
     return decorator
 
 
 @model_handler(api.AppTemplate, kopf.on.create)
-@model_handler(api.AppTemplate, kopf.on.update, field = "spec")
-@model_handler(api.AppTemplate, kopf.on.timer, interval = settings.timer_interval)
+@model_handler(api.AppTemplate, kopf.on.update, field="spec")
+@model_handler(api.AppTemplate, kopf.on.timer, interval=settings.timer_interval)
 async def reconcile_app_template(instance, **kwargs):
     """
     Reconciles an app template periodically.
     """
-    # If there was a successful sync within the sync frequency, we don't need to do anything
+    # If there was a successful sync within the sync frequency, we don't need to do
+    # anything
     now = dt.datetime.now(dt.timezone.utc)
-    threshold = now - dt.timedelta(seconds = instance.spec.sync_frequency)
+    threshold = now - dt.timedelta(seconds=instance.spec.sync_frequency)
     if instance.status.last_sync and instance.status.last_sync > threshold:
         return
     # Fetch the repository index from the specified URL
-    async with httpx.AsyncClient(base_url = instance.spec.chart.repo) as http:
+    async with httpx.AsyncClient(base_url=instance.spec.chart.repo) as http:
         response = await http.get("index.yaml")
         response.raise_for_status()
     # Get the available versions for the chart that match our constraint, sorted
@@ -179,18 +183,19 @@ async def reconcile_app_template(instance, **kwargs):
             for v in yaml.safe_load(response.text)["entries"][instance.spec.chart.name]
             if easysemver.Version(v["version"]) in version_range
         ),
-        key = lambda v: easysemver.Version(v["version"]),
-        reverse = True
+        key=lambda v: easysemver.Version(v["version"]),
+        reverse=True,
     )
     # Throw away any versions that we aren't keeping
-    chart_versions = chart_versions[:instance.spec.keep_versions]
+    chart_versions = chart_versions[: instance.spec.keep_versions]
     if not chart_versions:
         raise kopf.PermanentError("no versions matching constraint")
     next_label = instance.status.label
     next_logo = instance.status.logo
     next_description = instance.status.description
     next_versions = []
-    # For each version, we need to make sure we have a values schema and optionally a UI schema
+    # For each version, we need to make sure we have a values schema and optionally a UI
+    # schema
     for chart_version in chart_versions:
         existing_version = next(
             (
@@ -198,27 +203,27 @@ async def reconcile_app_template(instance, **kwargs):
                 for version in instance.status.versions
                 if version.name == chart_version["version"]
             ),
-            None
+            None,
         )
         # If we already know about the version, just use it as-is
         if existing_version:
             next_versions.append(existing_version)
             continue
         # Use the label, logo and description from the first version that has them
-        # The label goes in a custom annotation as there isn't really a field for it, falling back
-        # to the chart name if it is not present
+        # The label goes in a custom annotation as there isn't really a field for it,
+        # falling back to the chart name if it is not present
         next_label = (
-            next_label or
-            chart_version.get("annotations", {}).get("azimuth.stackhpc.com/label") or
-            chart_version["name"]
+            next_label
+            or chart_version.get("annotations", {}).get("azimuth.stackhpc.com/label")
+            or chart_version["name"]
         )
         next_logo = next_logo or chart_version.get("icon")
         next_description = next_description or chart_version.get("description")
         # Pull the chart to extract the values schema and UI schema, if present
         chart_context = helm_client.pull_chart(
             instance.spec.chart.name,
-            repo = instance.spec.chart.repo,
-            version = chart_version["version"]
+            repo=instance.spec.chart.repo,
+            version=chart_version["version"],
         )
         async with chart_context as chart:
             chart_directory = pathlib.Path(chart.ref)
@@ -236,9 +241,9 @@ async def reconcile_app_template(instance, **kwargs):
                 ui_schema = {}
         next_versions.append(
             api.AppTemplateVersion(
-                name = chart_version["version"],
-                values_schema = values_schema,
-                ui_schema = ui_schema
+                name=chart_version["version"],
+                values_schema=values_schema,
+                ui_schema=ui_schema,
             )
         )
     instance.status.label = instance.spec.label or next_label
@@ -256,23 +261,23 @@ def compute_checksum(data):
     # We compute the checksum by dumping the data as JSON and hashing it
     # When dumping, we sort the keys to try and ensure consistency
     if not isinstance(data, str):
-        data = json.dumps(data, sort_keys = True)
+        data = json.dumps(data, sort_keys=True)
     return hashlib.sha256(data.encode()).hexdigest()
 
 
 def generate_flux_resources(
-    owner: t.Dict[str, t.Any],
+    owner: dict[str, t.Any],
     name: str,
     namespace: str,
-    labels: t.Dict[str, str],
+    labels: dict[str, str],
     repo: str,
     chart: str,
     version: str,
-    values: t.Dict[str, str],
-    release_name: t.Optional[str] = None,
-    target_namespace: t.Optional[str] = None,
-    kubeconfig_secret_name: t.Optional[str] = None,
-    kubeconfig_secret_key: t.Optional[str] = None
+    values: dict[str, str],
+    release_name: str | None = None,
+    target_namespace: str | None = None,
+    kubeconfig_secret_name: str | None = None,
+    kubeconfig_secret_key: str | None = None,
 ):
     return [
         {
@@ -360,7 +365,8 @@ def generate_flux_resources(
                 "namespace": namespace,
                 "labels": labels,
                 "annotations": {
-                    # We want the Helm release to reconcile whenever the chart or values change
+                    # We want the Helm release to reconcile whenever the chart or values
+                    # change
                     "reconcile.fluxcd.io/requestedAt": compute_checksum(
                         {
                             "chart": {
@@ -437,7 +443,7 @@ def generate_flux_resources(
 @kopf.on.event(
     "v1",
     "secrets",
-    labels = { settings.zenith_operator.kubeconfig_secret_label: kopf.PRESENT }
+    labels={settings.zenith_operator.kubeconfig_secret_label: kopf.PRESENT},
 )
 async def handle_secret_event(logger, name, namespace, body, **kwargs):
     """
@@ -470,9 +476,9 @@ async def handle_secret_event(logger, name, namespace, body, **kwargs):
                         # We expect a single key
                         "key": next(iter(body["data"].keys())),
                     },
-                }
+                },
             ):
-                await ekclient.apply_object(resource, force = True)
+                await ekclient.apply_object(resource, force=True)
         except Exception as exc:
             # Log the exception
             logger.exception(exc)
@@ -486,7 +492,7 @@ async def handle_secret_event(logger, name, namespace, body, **kwargs):
 
 
 @model_handler(api.App, kopf.on.create)
-@model_handler(api.App, kopf.on.update, field = "spec")
+@model_handler(api.App, kopf.on.update, field="spec")
 @model_handler(api.App, kopf.on.resume)
 async def reconcile_app(instance: api.App, **kwargs):
     """
@@ -510,7 +516,7 @@ async def reconcile_app(instance: api.App, **kwargs):
 
     # Template out and apply the Flux resources for the app
     for resource in generate_flux_resources(
-        instance.model_dump(by_alias = True),
+        instance.model_dump(by_alias=True),
         f"azapp-{instance.metadata.name}",
         instance.metadata.namespace,
         {
@@ -524,9 +530,9 @@ async def reconcile_app(instance: api.App, **kwargs):
         instance.metadata.name,
         instance.metadata.name,
         instance.spec.kubeconfig_secret.name,
-        instance.spec.kubeconfig_secret.key
+        instance.spec.kubeconfig_secret.key,
     ):
-        await ekclient.apply_object(resource, force = True)
+        await ekclient.apply_object(resource, force=True)
 
 
 @model_handler(api.App, kopf.on.delete)
@@ -544,8 +550,7 @@ async def delete_app(instance, **kwargs):
     releases = await ekclient.api("helm.toolkit.fluxcd.io/v2").resource("helmreleases")
     try:
         release = await releases.fetch(
-            instance.metadata.name,
-            namespace = instance.metadata.namespace
+            instance.metadata.name, namespace=instance.metadata.namespace
         )
     except easykube.ApiError as exc:
         # If the status is 404, we are done
@@ -555,7 +560,7 @@ async def delete_app(instance, **kwargs):
         # If the deletion of the HelmRelease has not been triggered yet, trigger it
         if not release.metadata.get("deletionTimestamp"):
             await ekclient.delete_object(release)
-        raise kopf.TemporaryError("waiting for Flux HelmRelease to be deleted", delay = 5)
+        raise kopf.TemporaryError("waiting for Flux HelmRelease to be deleted", delay=5)
 
 
 @contextlib.asynccontextmanager
@@ -568,12 +573,11 @@ async def clients_for_app(app: api.App):
     secrets = await ekclient.api("v1").resource("secrets")
     try:
         kubeconfig_secret = await secrets.fetch(
-            app.spec.kubeconfig_secret.name,
-            namespace = app.metadata.namespace
+            app.spec.kubeconfig_secret.name, namespace=app.metadata.namespace
         )
     except easykube.ApiError as exc:
         if exc.status_code == 404:
-            raise kopf.TemporaryError("kubeconfig secret does not exist", delay = 15)
+            raise kopf.TemporaryError("kubeconfig secret does not exist", delay=15)
         else:
             raise
     try:
@@ -586,19 +590,17 @@ async def clients_for_app(app: api.App):
         kubeconfig.write(kubeconfig_data)
         kubeconfig.flush()
         # Get an easykube client for the target cluster
-        ekclient_target = (
-            easykube.Configuration
-                .from_kubeconfig_data(kubeconfig_data, json_encoder = pydantic_encoder)
-                .async_client(default_field_manager = settings.easykube_field_manager)
-        )
+        ekclient_target = easykube.Configuration.from_kubeconfig_data(
+            kubeconfig_data, json_encoder=pydantic_encoder
+        ).async_client(default_field_manager=settings.easykube_field_manager)
         # Get a Helm client for the target cluster
         helm_client_target = pyhelm3.Client(
-            default_timeout = settings.helm_client.default_timeout,
-            executable = settings.helm_client.executable,
-            history_max_revisions = settings.helm_client.history_max_revisions,
-            insecure_skip_tls_verify = settings.helm_client.insecure_skip_tls_verify,
-            kubeconfig = kubeconfig.name,
-            unpack_directory = settings.helm_client.unpack_directory
+            default_timeout=settings.helm_client.default_timeout,
+            executable=settings.helm_client.executable,
+            history_max_revisions=settings.helm_client.history_max_revisions,
+            insecure_skip_tls_verify=settings.helm_client.insecure_skip_tls_verify,
+            kubeconfig=kubeconfig.name,
+            unpack_directory=settings.helm_client.unpack_directory,
         )
         # Yield the clients as a tuple
         async with ekclient_target:
@@ -612,7 +614,7 @@ async def get_helm_revision(helm_client, release) -> pyhelm3.ReleaseRevisionStat
     try:
         return await helm_client.get_current_revision(
             release["spec"]["releaseName"],
-            namespace = release["spec"]["storageNamespace"]
+            namespace=release["spec"]["storageNamespace"],
         )
     except pyhelm3.errors.ReleaseNotFoundError:
         raise kopf.TemporaryError("helm release for app does not exist")
@@ -626,12 +628,12 @@ async def get_zenith_services(ekclient, revision):
     manifest_reservations = [
         (
             resource["metadata"]["name"],
-            resource["metadata"].get("namespace", revision.release.namespace)
+            resource["metadata"].get("namespace", revision.release.namespace),
         )
         for resource in (await revision.resources())
         if (
-            resource["apiVersion"] == "zenith.stackhpc.com/v1alpha1" and
-            resource["kind"] == "Reservation"
+            resource["apiVersion"] == "zenith.stackhpc.com/v1alpha1"
+            and resource["kind"] == "Reservation"
         )
     ]
     # If there are no reservations in the manifest, we are done
@@ -639,9 +641,13 @@ async def get_zenith_services(ekclient, revision):
         return {}
     # Otherwise, load the current state of each reservation from the target cluster
     services = {}
-    reservations = await ekclient.api("zenith.stackhpc.com/v1alpha1").resource("reservations")
+    reservations = await ekclient.api("zenith.stackhpc.com/v1alpha1").resource(
+        "reservations"
+    )
     for reservation_name, reservation_namespace in manifest_reservations:
-        reservation = await reservations.fetch(reservation_name, namespace = reservation_namespace)
+        reservation = await reservations.fetch(
+            reservation_name, namespace=reservation_namespace
+        )
         # If the reservation is not ready, leave it for now
         if reservation.get("status", {}).get("phase", "Unknown") != "Ready":
             continue
@@ -653,15 +659,15 @@ async def get_zenith_services(ekclient, revision):
             else f"{reservation_namespace}-{reservation_name}"
         )
         services[reservation_key] = api.AppServiceStatus(
-            subdomain = reservation["status"]["subdomain"],
-            fqdn = reservation["status"]["fqdn"],
-            label = annotations.get(
+            subdomain=reservation["status"]["subdomain"],
+            fqdn=reservation["status"]["fqdn"],
+            label=annotations.get(
                 "azimuth.stackhpc.com/service-label",
                 # Derive a label from the name if not specified
-                " ".join(word.capitalize() for word in reservation_name.split("-"))
+                " ".join(word.capitalize() for word in reservation_name.split("-")),
             ),
-            icon_url = annotations.get("azimuth.stackhpc.com/service-icon-url"),
-            description = annotations.get("azimuth.stackhpc.com/service-description")
+            icon_url=annotations.get("azimuth.stackhpc.com/service-icon-url"),
+            description=annotations.get("azimuth.stackhpc.com/service-description"),
         )
     return services
 
@@ -700,21 +706,21 @@ async def update_identity_platform(app: api.App):
                 },
             },
         },
-        force = True
+        force=True,
     )
 
 
 @dataclasses.dataclass
 class Condition:
     status: str
-    reason: t.Optional[str]
-    message: t.Optional[str]
+    reason: str | None
+    message: str | None
 
     def __str__(self):
         return self.message or self.reason or ""
 
 
-def extract_condition(obj, type) -> Condition:
+def extract_condition(obj, type) -> Condition:  # noqa: A002
     """
     Extract the status and reason from the condition of the given type.
     """
@@ -725,9 +731,7 @@ def extract_condition(obj, type) -> Condition:
         return Condition("Unknown", None, None)
     else:
         return Condition(
-            condition["status"],
-            condition.get("reason"),
-            condition.get("message")
+            condition["status"], condition.get("reason"), condition.get("message")
         )
 
 
@@ -742,8 +746,8 @@ async def fetch_related_flux_object(app: api.App, kind: str):
     )
     ekresource = await ekapi.resource(kind)
     obj = await ekresource.first(
-        labels = {"apps.azimuth-cloud.io/app": app.metadata.name},
-        namespace = app.metadata.namespace
+        labels={"apps.azimuth-cloud.io/app": app.metadata.name},
+        namespace=app.metadata.namespace,
     )
     if obj:
         return obj
@@ -752,9 +756,7 @@ async def fetch_related_flux_object(app: api.App, kind: str):
 
 
 def reconcile_app_phase(
-    repository: t.Dict[str, t.Any],
-    chart: t.Dict[str, t.Any],
-    release: t.Dict[str, t.Any]
+    repository: dict[str, t.Any], chart: dict[str, t.Any], release: dict[str, t.Any]
 ):
     """
     Reconcile the phase of an app. Returns a tuple of (phase, failure message).
@@ -767,9 +769,9 @@ def reconcile_app_phase(
     released = extract_condition(release, "Released")
     reconciling = extract_condition(release, "Reconciling")
 
-    # For the repository and chart, we only transition into the failed phase if they are stalled
-    # This means that Flux has identified that they cannot proceed without changes to the spec
-    # Anything else is considered preparing
+    # For the repository and chart, we only transition into the failed phase if they are
+    # stalled. This means that Flux has identified that they cannot proceed without
+    # changes to the spec. Anything else is considered preparing
     if repository_ready.status != "True":
         if repository_stalled.status == "True":
             return api.AppPhase.FAILED, str(repository_stalled)
@@ -785,14 +787,15 @@ def reconcile_app_phase(
     if ready.status == "True":
         return api.AppPhase.DEPLOYED, None
     elif reconciling.status == "True":
-        # Whether reconciling resolves to installing or upgrading depends on whether there has
-        # been a successful release previously
+        # Whether reconciling resolves to installing or upgrading depends on whether
+        # there has been a successful release previously
         if released.status == "True":
             return api.AppPhase.UPGRADING, None
         else:
             return api.AppPhase.INSTALLING, None
     elif ready.status == "False":
-        # If the ready status is actually False rather than Unknown, mark the app as failed
+        # If the ready status is actually False rather than Unknown,
+        # mark the app as failed
         return api.AppPhase.FAILED, str(ready)
     else:
         return api.AppPhase.PENDING, None
@@ -800,9 +803,9 @@ def reconcile_app_phase(
 
 async def reconcile_app_status(
     app: api.App,
-    repository: t.Dict[str, t.Any],
-    chart: t.Dict[str, t.Any],
-    release: t.Dict[str, t.Any]
+    repository: dict[str, t.Any],
+    chart: dict[str, t.Any],
+    release: dict[str, t.Any],
 ):
     """
     Reconcile the status of an app and a Flux object.
@@ -813,9 +816,7 @@ async def reconcile_app_status(
 
     # Derive the phase of the app from the Flux objects
     app.status.phase, app.status.failure_message = reconcile_app_phase(
-        repository,
-        chart,
-        release
+        repository, chart, release
     )
 
     # Get the notes and Zenith services directly from the Helm release, as the notes and
@@ -835,8 +836,8 @@ async def reconcile_app_status(
 @model_handler(
     api.App,
     kopf.on.timer,
-    interval = settings.timer_interval,
-    idle = settings.timer_interval
+    interval=settings.timer_interval,
+    idle=settings.timer_interval,
 )
 async def reconcile_app_status_timer(instance: api.App, **kwargs):
     """
@@ -856,7 +857,7 @@ async def find_app(obj):
     try:
         app_data = await apps.fetch(
             obj["metadata"]["labels"]["apps.azimuth-cloud.io/app"],
-            namespace = obj["metadata"]["namespace"]
+            namespace=obj["metadata"]["namespace"],
         )
     except easykube.ApiError as exc:
         if exc.status_code == 404:
@@ -869,7 +870,7 @@ async def find_app(obj):
 
 @kopf.on.event(
     "helmrepositories.source.toolkit.fluxcd.io",
-    labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
+    labels={"apps.azimuth-cloud.io/app": kopf.PRESENT},
 )
 async def handle_helmrepository_event(body, **kwargs):
     """
@@ -885,7 +886,7 @@ async def handle_helmrepository_event(body, **kwargs):
 
 @kopf.on.event(
     "helmcharts.source.toolkit.fluxcd.io",
-    labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
+    labels={"apps.azimuth-cloud.io/app": kopf.PRESENT},
 )
 async def handle_helmchart_event(body, **kwargs):
     """
@@ -901,7 +902,7 @@ async def handle_helmchart_event(body, **kwargs):
 
 @kopf.on.event(
     "helmreleases.helm.toolkit.fluxcd.io",
-    labels = {"apps.azimuth-cloud.io/app": kopf.PRESENT}
+    labels={"apps.azimuth-cloud.io/app": kopf.PRESENT},
 )
 async def handle_helmrelease_event(body, **kwargs):
     """
