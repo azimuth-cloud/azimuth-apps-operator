@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   # Run nightly
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   propose_github_release_updates:
@@ -42,6 +42,13 @@ jobs:
           path: ${{ matrix.path }}
           updates: |
             ${{ matrix.version_jsonpath }}=${{ steps.next.outputs.version }}
+
+      - name: Update manifest snapshots
+        run: |-
+          docker run -i --rm --user $(id -u) \
+            -v $(pwd):/apps \
+            helmunittest/helm-unittest -u \
+            chart
 
       - name: Generate app token for PR
         uses: azimuth-cloud/github-actions/generate-app-token@master

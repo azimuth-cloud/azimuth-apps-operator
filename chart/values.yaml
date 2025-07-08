@@ -14,7 +14,7 @@ trustBundle:
 image:
   repository: ghcr.io/azimuth-cloud/azimuth-apps-operator
   pullPolicy: IfNotPresent
-  tag: ""  # Defaults to appVersion if not given
+  tag: "" # Defaults to appVersion if not given
 
 imagePullSecrets: []
 
