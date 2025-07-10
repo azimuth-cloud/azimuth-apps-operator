@@ -518,9 +518,11 @@ async def reconcile_app(instance: api.App, **kwargs):
     for resource in generate_flux_resources(
         instance.model_dump(by_alias=True),
         f"azapp-{instance.metadata.name}",
-        (instance.metadata.namespace if 
-        (template.spec.namespace == "") 
-        else template.spec.namespace),
+        (
+            instance.metadata.namespace if 
+            (template.spec.namespace == "") 
+            else template.spec.namespace
+        ),
         {
             "app.kubernetes.io/managed-by": "azimuth-apps-operator",
             "apps.azimuth-cloud.io/app": instance.metadata.name,

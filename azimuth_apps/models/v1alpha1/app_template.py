@@ -75,7 +75,9 @@ class AppTemplateSpec(schema.BaseModel):
             "Default values for deployments of the app, on top of the chart defaults."
         ),
     )
-    namespace: schema.constr(pattern=r"^[a-z0-9-]+$") = Field("", description=(
+    namespace: schema.constr(pattern=r"^[a-z0-9-]+$") = Field(
+        "",
+        description=(
             "The namespace to target for deployments of this app. "
             "(Useful for k8s only setup) "
             "Defaults to none, which causes flux to generate a new one "
