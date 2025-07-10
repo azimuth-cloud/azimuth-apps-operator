@@ -76,9 +76,10 @@ class AppTemplateSpec(schema.BaseModel):
         ),
     )
     namespace: schema.constr(pattern=r"^[a-z0-9-]+$") = Field("", description=(
-            "The namespace to target for deployments of this app"
-            "(Useful for k8s only setup)"
-            "Defaults to none, which causes flux to generate a new one based on Platform name"
+            "The namespace to target for deployments of this app. "
+            "(Useful for k8s only setup) "
+            "Defaults to none, which causes flux to generate a new one "
+            "based on Platform name."
         ),
     )
 
