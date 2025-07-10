@@ -519,8 +519,8 @@ async def reconcile_app(instance: api.App, **kwargs):
         instance.model_dump(by_alias=True),
         f"azapp-{instance.metadata.name}",
         (
-            instance.metadata.namespace if 
-            (template.spec.namespace == "") 
+            instance.metadata.namespace
+            if (template.spec.namespace == "") 
             else template.spec.namespace
         ),
         {
