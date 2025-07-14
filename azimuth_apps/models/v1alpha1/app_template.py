@@ -79,9 +79,7 @@ class AppTemplateSpec(schema.BaseModel):
         "",
         description=(
             "The namespace to target for deployments of this app. "
-            "(Useful for k8s only setup) "
-            "Defaults to none, which causes flux to generate a new one "
-            "based on Platform name."
+            "If not given, the platform name is used"
         ),
     )
 
