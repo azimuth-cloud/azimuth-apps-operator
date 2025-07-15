@@ -75,6 +75,13 @@ class AppTemplateSpec(schema.BaseModel):
             "Default values for deployments of the app, on top of the chart defaults."
         ),
     )
+    namespace: schema.constr(pattern=r"^[a-z0-9-]+$") = Field(
+        "",
+        description=(
+            "The namespace to target for deployments of this app. "
+            "If not given, the platform name is used"
+        ),
+    )
 
 
 class AppTemplateVersion(schema.BaseModel):
