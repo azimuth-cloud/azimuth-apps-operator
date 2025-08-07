@@ -82,6 +82,13 @@ class AppTemplateSpec(schema.BaseModel):
             "If not given, the platform name is used"
         ),
     )
+    management_install: schema.conbool() = Field(
+        False,
+        description=(
+            "Boolean for installing Helmrelease in the Azimuth management "
+            "Cluster, instead of the usual resources cluster."
+        ),
+    )
 
 
 class AppTemplateVersion(schema.BaseModel):
