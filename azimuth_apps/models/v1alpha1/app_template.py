@@ -82,7 +82,7 @@ class AppTemplateSpec(schema.BaseModel):
             "If not given, the platform name is used"
         ),
     )
-    management_install: schema.conbool() = Field(
+    management_install: bool = Field(
         False,
         description=(
             "Boolean for installing Helmrelease in the Azimuth management "
