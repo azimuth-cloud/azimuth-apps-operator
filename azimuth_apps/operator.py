@@ -530,7 +530,7 @@ async def reconcile_app(instance: api.App, **kwargs):
         instance.metadata.name,
         template.spec.namespace or instance.metadata.name,
         None
-        if (template.spec.managment_install)
+        if (template.spec.management_install)
         else instance.spec.kubeconfig_secret.name,
         instance.spec.kubeconfig_secret.key,
     ):
