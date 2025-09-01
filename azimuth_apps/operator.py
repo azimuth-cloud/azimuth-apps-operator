@@ -278,6 +278,7 @@ def generate_flux_resources(
     target_namespace: str | None = None,
     kubeconfig_secret_name: str | None = None,
     kubeconfig_secret_key: str | None = None,
+    management_cluster_install = False,
 ):
     return [
         {
@@ -432,10 +433,25 @@ def generate_flux_resources(
                             },
                         },
                     }
-                    if kubeconfig_secret_name
+                    if kubeconfig_secret_name and not management_cluster_install
                     else {}
                 ),
             },
+            **(
+               {
+                    "values": {
+                        "namespace": {
+                            "slinky": namespace,
+                        },
+                        "kubeconfig": {
+                            "name": kubeconfig_secret_name,
+                            "key": kubeconfig_secret_key,
+                        }
+                    },
+                } 
+                if management_cluster_install
+                else {}
+            )
         },
     ]
 
@@ -529,9 +545,7 @@ async def reconcile_app(instance: api.App, **kwargs):
         instance.spec.values,
         instance.metadata.name,
         template.spec.namespace or instance.metadata.name,
-        None
-        if (template.spec.managment_install)
-        else instance.spec.kubeconfig_secret.name,
+        instance.spec.kubeconfig_secret.name,
         instance.spec.kubeconfig_secret.key,
     ):
         await ekclient.apply_object(resource, force=True)
