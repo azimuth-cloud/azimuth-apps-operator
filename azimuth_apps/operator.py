@@ -545,7 +545,9 @@ async def reconcile_app(instance: api.App, **kwargs):
         instance.spec.values,
         instance.metadata.name,
         template.spec.namespace or instance.metadata.name,
-        instance.spec.kubeconfig_secret.name,
+        None
+        if (template.spec.management_install)
+        else instance.spec.kubeconfig_secret.name,
         instance.spec.kubeconfig_secret.key,
     ):
         await ekclient.apply_object(resource, force=True)
