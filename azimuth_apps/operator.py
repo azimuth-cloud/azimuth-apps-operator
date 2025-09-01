@@ -441,7 +441,8 @@ def generate_flux_resources(
                 {
                     "values": {
                         "namespace": {
-                            "slinky": namespace,
+                            "flux:": namespace,
+                            "slinky": target_namespace,
                         },
                         "kubeconfig": {
                             "name": kubeconfig_secret_name,
