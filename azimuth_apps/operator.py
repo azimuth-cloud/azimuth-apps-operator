@@ -278,6 +278,7 @@ def generate_flux_resources(
     target_namespace: str | None = None,
     kubeconfig_secret_name: str | None = None,
     kubeconfig_secret_key: str | None = None,
+    management_cluster_install=False,
 ):
     return [
         {
@@ -432,10 +433,26 @@ def generate_flux_resources(
                             },
                         },
                     }
-                    if kubeconfig_secret_name
+                    if kubeconfig_secret_name and not management_cluster_install
                     else {}
                 ),
             },
+            **(
+                {
+                    "values": {
+                        "namespace": {
+                            "flux:": namespace,
+                            "deployment": target_namespace,
+                        },
+                        "kubeconfig": {
+                            "name": kubeconfig_secret_name,
+                            "key": kubeconfig_secret_key,
+                        },
+                    },
+                }
+                if management_cluster_install
+                else {}
+            ),
         },
     ]
 
