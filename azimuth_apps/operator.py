@@ -280,6 +280,14 @@ def generate_flux_resources(
     kubeconfig_secret_key: str | None = None,
     management_cluster_install=False,
 ):
+    generated_values = yaml.safe_load(values)
+    if management_cluster_install:
+      generated_values["targetNamespace"] = target_namespace
+      generated_values["kubeconfig"] = {
+          "name": kubeconfig_secret_name,
+          "key": kubeconfig_secret_key
+      }
+    
     return [
         {
             "apiVersion": "source.toolkit.fluxcd.io/v1",
@@ -355,7 +363,7 @@ def generate_flux_resources(
                 ],
             },
             "stringData": {
-                "values.yaml": yaml.safe_dump(values),
+                "values.yaml": yaml.dump(generated_values),
             },
         },
         {
@@ -437,22 +445,6 @@ def generate_flux_resources(
                     else {}
                 ),
             },
-            **(
-                {
-                    "values": {
-                        "namespace": {
-                            "flux:": namespace,
-                            "deployment": target_namespace,
-                        },
-                        "kubeconfig": {
-                            "name": kubeconfig_secret_name,
-                            "key": kubeconfig_secret_key,
-                        },
-                    },
-                }
-                if management_cluster_install
-                else {}
-            ),
         },
     ]
 
