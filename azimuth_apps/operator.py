@@ -278,7 +278,15 @@ def generate_flux_resources(
     target_namespace: str | None = None,
     kubeconfig_secret_name: str | None = None,
     kubeconfig_secret_key: str | None = None,
+    management_cluster_install=False,
 ):
+    if management_cluster_install:
+        values["targetNamespace"] = target_namespace
+        values["kubeconfig"] = {
+            "name": kubeconfig_secret_name,
+            "key": kubeconfig_secret_key,
+        }
+
     return [
         {
             "apiVersion": "source.toolkit.fluxcd.io/v1",
@@ -432,7 +440,7 @@ def generate_flux_resources(
                             },
                         },
                     }
-                    if kubeconfig_secret_name
+                    if kubeconfig_secret_name and not management_cluster_install
                     else {}
                 ),
             },

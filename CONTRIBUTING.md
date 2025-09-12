@@ -20,3 +20,7 @@ docker run -i --rm -v $(pwd):/apps helmunittest/helm-unittest chart -u
 ```
 
 where the `-u` option is used to update the existing snapshots.
+
+### Python scripts 
+The CI in this repository lints and checks python on PRs using `tox`.
+For development, run `$ tox` in the root of the repo.
