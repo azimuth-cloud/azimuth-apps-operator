@@ -280,10 +280,9 @@ def generate_flux_resources(
     kubeconfig_secret_key: str | None = None,
     management_cluster_install=False,
 ):
-    generated_values = yaml.safe_load(values)
     if management_cluster_install:
-        generated_values["targetNamespace"] = target_namespace
-        generated_values["kubeconfig"] = {
+        values["targetNamespace"] = target_namespace
+        values["kubeconfig"] = {
             "name": kubeconfig_secret_name,
             "key": kubeconfig_secret_key,
         }
@@ -363,7 +362,7 @@ def generate_flux_resources(
                 ],
             },
             "stringData": {
-                "values.yaml": yaml.dump(generated_values),
+                "values.yaml": yaml.safe_dump(values),
             },
         },
         {
