@@ -11,6 +11,9 @@ on:
 jobs:
   propose_github_release_updates:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     strategy:
       matrix:
         include:
