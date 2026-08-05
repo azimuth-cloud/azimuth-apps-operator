@@ -49,6 +49,7 @@ jobs:
       - name: Update manifest snapshots
         run: |-
           docker run -i --rm --user $(id -u) \
+            --tmpfs=/.cache \
             -v $(pwd):/apps \
             helmunittest/helm-unittest -u \
             chart
