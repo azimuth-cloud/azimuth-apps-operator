@@ -49,6 +49,7 @@ jobs:
       - name: Update manifest snapshots
         run: |-
           docker run -i --rm --user $(id -u) \
+            -e XDG_CACHE_HOME=/tmp/cache \
             -v $(pwd):/apps \
             helmunittest/helm-unittest -u \
             chart
