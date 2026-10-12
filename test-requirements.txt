@@ -8,4 +8,4 @@ autopep8
 mypy
 types-PyYAML
 types-setuptools
-black~=26.5.1
+black~=26.10.0
