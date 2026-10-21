@@ -116,13 +116,16 @@ templated manifests should match snapshot:
       template:
         metadata:
           annotations:
-            azimuth.stackhpc.com/config-hash: 4f9d76e5e11b44af6434738b21dab023f02609591544b73f10ebabf0b18319ee
+            azimuth.stackhpc.com/config-hash: d4351907538a5fafd057adf0c541a6583deed34e8513cd2003c1621430ddbe02
           labels:
             app.kubernetes.io/instance: RELEASE-NAME
             app.kubernetes.io/name: azimuth-apps-operator
         spec:
           containers:
-            - image: ghcr.io/azimuth-cloud/azimuth-apps-operator:main
+            - env:
+                - name: LOG_LEVEL
+                  value: info
+              image: ghcr.io/azimuth-cloud/azimuth-apps-operator:main
               imagePullPolicy: IfNotPresent
               name: operator
               ports:
@@ -168,6 +171,7 @@ templated manifests should match snapshot:
       defaults.yaml: |
         {}
       user-config.yaml: |
+        loggingLevel: info
         zenithOperator:
           chartName: zenith-operator
           chartRepo: https://azimuth-cloud.github.io/zenith

@@ -6,6 +6,7 @@ config:
     chartRepo: https://azimuth-cloud.github.io/zenith
     chartName: zenith-operator
     chartVersion: 0.21.0
+  loggingLevel: "info"
 
 # A bundle of trusted CAs to use instead of the defaults
 trustBundle:
