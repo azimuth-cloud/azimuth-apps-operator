@@ -1,15 +1,7 @@
 name: Integration tests
 
 on:
-  # We use pull_request_target so that dependabot-created workflows can run
-  pull_request_target:
-    types:
-      - opened
-      - synchronize
-      - ready_for_review
-      - reopened
-    branches:
-      - main
+  pull_request:
 
 # Use the head ref for workflow concurrency, with cancellation
 # This should mean that any previous workflows for a PR get cancelled when a new commit is pushed
@@ -30,16 +22,7 @@ jobs:
     with:
       ref: ${{ github.event.pull_request.head.sha }}
 
-  # This job exists so that PRs from outside the main repo are rejected
-  fail_on_remote:
-    needs: [unit_tests, helm_lint]
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR must be from a branch in the azimuth-cloud/azimuth-apps-operator repo
-        run: exit ${{ github.event.pull_request.head.repo.full_name == 'azimuth-cloud/azimuth-apps-operator' && '0' || '1' }}
-
   publish_artifacts:
-    needs: [fail_on_remote]
     uses: ./.github/workflows/build-push-artifacts.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
@@ -68,8 +51,9 @@ jobs:
             azimuth_apps_operator_chart_repo: https://azimuth-cloud.github.io/azimuth-apps-operator
             azimuth_apps_operator_chart_version: ${{ needs.publish_artifacts.outputs.chart-version }}
             generate_tests_caas_suite_enabled: false
-            generate_tests_kubernetes_suite_enabled: false
+            generate_tests_kubernetes_suite_enabled: true
             generate_tests_kubernetes_apps_suite_enabled: true
+            generate_tests_kubernetes_test_cases_latest_only: true
         # GitHub terminates jobs after 6 hours
         # We don't want jobs to acquire the lock then get timed out before they can finish
         # So wait a maximum of 3 hours to acquire the lock, leaving 3 hours for other tasks in the job
